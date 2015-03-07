@@ -24,21 +24,27 @@ object LinkedDataClient {
 
 }
 
+sealed trait LDResult[+Rdf <: RDF]
+case class LDGraph[Rdf <: RDF](graph: Rdf#Graph) extends LDResult[Rdf]
+case object Image                                extends LDResult[Nothing]
+
 class LinkedDataClient[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
   n3Parser: n3js.io.N3jsTurtleParser[Rdf],
   jsonLdParser: jsonldjs.io.JsonLdJsParser[Rdf]
 ) {
 
-  def get(url: String): Future[Rdf#Graph] = {
+  def get(url: String): Future[LDResult[Rdf]] = {
     Ajax.get(url, headers = LinkedDataClient.headers).flatMap { xhr =>
-      val body = xhr.responseText
-      val input = new java.io.StringReader(body)
-//      println(body)
+      def input = new java.io.StringReader(xhr.responseText)
       val contentType = xhr.getResponseHeader("Content-Type").split(";").head
       contentType match {
-        case "text/turtle"                              => n3Parser.read(input, url)
-        case "application/ld+json" | "application/json" => jsonLdParser.read(input, url)
+        case "text/turtle" =>
+          n3Parser.read(input, url).map(graph => LDGraph(graph))
+        case "application/ld+json" | "application/json" =>
+          jsonLdParser.read(input, url).map(graph => LDGraph(graph))
+        case "image/gif" | "image/jpeg" | "image/pjpeg" | "image/png" | "image/svg+xml" | "image/tiff" =>
+          Future.successful(Image)
       }
     }
   }
@@ -60,29 +66,8 @@ object ScalaJSExample extends js.JSApp {
     paragraph.innerHTML = "<strong>It works!</strong>"
     dom.document.getElementById("playground").appendChild(paragraph)
 
-    val turtle = new java.io.StringReader("""
-@prefix c: <http://example.org/cartoons#>.
-c:Tom a c:Cat. 
-c:Jerry a c:Mouse;
-        c:smarterThan c:Tom.
-""")
-
-    n3Parser.read(turtle, "http://example.com").foreach { graph =>
-      graph.triples.foreach(println)
-    }
-
-    val jsonLd = new java.io.StringReader("""{
-  "http://schema.org/name": "Manu Sporny",
-  "http://schema.org/url": {"@id": "http://manu.sporny.org/"},
-  "http://schema.org/image": {"@id": "http://manu.sporny.org/images/manu.png"}
-}""")
-
-    jsonLdParser.read(jsonLd, "http://example.com").foreach { graph =>
-      graph.triples.foreach(println)
-    }
-
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
-    f.onSuccess { case graph =>
+    f.onSuccess { case LDGraph(graph) =>
       graph.triples.foreach(println)
     }
     f.onFailure { case e: Exception =>
