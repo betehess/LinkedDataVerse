@@ -51,15 +51,21 @@ class LinkedDataClient[Rdf <: RDF](implicit
 
 }
 
-object ScalaJSExample extends js.JSApp {
 
-  import org.w3.banana.n3js._
 
-  implicit val n3Parser = new n3js.io.N3jsTurtleParser[N3js]
+class ScalaJSExample[Rdf <: RDF](implicit
+  ops: RDFOps[Rdf],
+  ldclient: LinkedDataClient[Rdf]
+) extends js.JSApp {
 
-  implicit val jsonLdParser = new jsonldjs.io.JsonLdJsParser[N3js]
+  import ops._
 
-  val ldclient = LinkedDataClient[N3js]
+  // how to deconstruct a node
+  def printNode(node: Rdf#Node): String = node.fold(
+    { case URI(uriS) => uriS },
+    { case BNode(label) => "_:" + label },
+    { case Literal(lexicalForm, URI(uriType), langOpt) => lexicalForm + langOpt.map(l => " <- lang:"+l).getOrElse("") }
+  )
 
   def main(): Unit = {
     val paragraph = dom.document.createElement("p")
@@ -68,14 +74,30 @@ object ScalaJSExample extends js.JSApp {
 
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
     f.onSuccess { case LDGraph(graph) =>
-      graph.triples.foreach(println)
+      //graph.triples.foreach(println)
+      graph.triples.foreach { case Triple(s, p, o) => println(printNode(o)) }
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
     }
 
-
   }
 
 
 }
+
+import org.w3.banana.n3js._
+
+object Implicits {
+
+  implicit val n3Parser = new n3js.io.N3jsTurtleParser[N3js]
+
+  implicit val jsonLdParser = new jsonldjs.io.JsonLdJsParser[N3js]
+
+  implicit val ldclient = LinkedDataClient[N3js]
+
+}
+
+import Implicits._
+
+object ScalaJSExample extends ScalaJSExample[N3js]
