@@ -13,11 +13,12 @@ persistLauncher in Test := false
 
 testFrameworks += new TestFramework("utest.runner.Framework")
 
-val bananaVersion = "0.8.0.93d16e0"
+val bananaVersion = "0.8.0.20150307"
+
+resolvers += "bertails.org snapshots" at "http://bertails.org/repo/"
 
 libraryDependencies ++= Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.8.0",
-//  "org.scala-js" %%% "scalajs-dom-extensions" % "0.8.0",
   "com.lihaoyi" %%% "utest" % "0.3.0" % "test",
   "org.w3" %%% "banana-plantain" % bananaVersion,
   "org.w3" %%% "banana-n3-js" % bananaVersion,

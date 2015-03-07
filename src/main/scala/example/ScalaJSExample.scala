@@ -34,7 +34,7 @@ class LinkedDataClient[Rdf <: RDF](implicit
     Ajax.get(url, headers = LinkedDataClient.headers).flatMap { xhr =>
       val body = xhr.responseText
       val input = new java.io.StringReader(body)
-      println(body)
+//      println(body)
       val contentType = xhr.getResponseHeader("Content-Type").split(";").head
       contentType match {
         case "text/turtle"                              => n3Parser.read(input, url)
@@ -47,13 +47,13 @@ class LinkedDataClient[Rdf <: RDF](implicit
 
 object ScalaJSExample extends js.JSApp {
 
-  import org.w3.banana.plantain._
+  import org.w3.banana.n3js._
 
-  implicit val n3Parser = new n3js.io.N3jsTurtleParser[Plantain]
+  implicit val n3Parser = new n3js.io.N3jsTurtleParser[N3js]
 
-  implicit val jsonLdParser = new jsonldjs.io.JsonLdJsParser[Plantain]
+  implicit val jsonLdParser = new jsonldjs.io.JsonLdJsParser[N3js]
 
-  val ldclient = LinkedDataClient[Plantain]
+  val ldclient = LinkedDataClient[N3js]
 
   def main(): Unit = {
     val paragraph = dom.document.createElement("p")
