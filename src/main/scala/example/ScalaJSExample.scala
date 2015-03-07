@@ -5,7 +5,7 @@ import js.annotation.JSExport
 import org.scalajs.dom
 import scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
-import org.w3.banana._
+import org.w3.banana._, io._
 import scala.concurrent.Future
 import org.scalajs.dom.ext._
 
@@ -30,8 +30,8 @@ case object Image                                extends LDResult[Nothing]
 
 class LinkedDataClient[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
-  n3Parser: n3js.io.N3jsTurtleParser[Rdf],
-  jsonLdParser: jsonldjs.io.JsonLdJsParser[Rdf]
+  n3Parser: RDFReader[Rdf, Future, Turtle],
+  jsonLdParser: RDFReader[Rdf, Future, JsonLd]
 ) {
 
   def get(url: String): Future[LDResult[Rdf]] = {
