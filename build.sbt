@@ -15,7 +15,7 @@ testFrameworks += new TestFramework("utest.runner.Framework")
 
 val bananaVersion = "0.8.0.20150307"
 
-resolvers += "bertails.org snapshots" at "http://bertails.org/repo/"
+resolvers += Resolver.url("bertails.org snapshots", new java.net.URL("http://bertails.org/repo/"))(Resolver.ivyStylePatterns)
 
 libraryDependencies ++= Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.8.0",
