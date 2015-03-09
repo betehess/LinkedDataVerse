@@ -95,13 +95,40 @@ class ScalaJSExample[Rdf <: RDF](implicit
     }}
   )
 
-  /*def addTriples(triples: Iterable[Rdf#Triple]): Unit = {
+  def addTripleMesh(triples: Iterable[Rdf#Triple]): Unit = {
     triples.foreach {
+        // Testing various types
+        case Triple(s, "http://www.w3.org/2002/07/owl#sameAs", o) => {}
+        case Triple(s, "http://dbpedia.org/property/hasPhotoCollection", o) => {
+          println("photos: ", o)
+        }
         case Triple(s, p, o) => {
-          if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
+          o.fold (
+            { case URI(uriS) => {
+              if (!loaded.contains(uriS)) {
+                world.addAText(p.toString + " " + uriS, "#268C3F", "#000000")
+                println(p)
+                loaded ::= uriS
+              }
+              uriS
+            }},
+            { case BNode(label) => "_:" + label },
+            { case Literal(lexicalForm, URI(uriType), langOpt) => {
+              langOpt match {
+                case Some("en") => {
+                  val predicate = p.toString()
+                  val deets = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
+                  world.addAText(deets + lexicalForm.substring(0, 200), "#253759", "#ffffff")
+                  lexicalForm
+                }
+                case _ => ""
+              }
+            }}
+          )
+
         }
     }
-  }*/
+  }
 
   def main(): Unit = {
     val paragraph = dom.document.createElement("p")
@@ -112,10 +139,10 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
     f.onSuccess { case LDGraph(graph) =>
-      //addTriples(graph.triples)
-      graph.triples.foreach { case Triple(s, p, o) => {
+      addTripleMesh(graph.triples)
+      /*graph.triples.foreach { case Triple(s, p, o) => {
         if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
-      } }
+      } }*/
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
