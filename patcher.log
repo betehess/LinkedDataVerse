@@ -1,0 +1,12 @@
+03/07/2015 05:01:58 PM [INFO    ]: Squad Patcher 2.0.0.198 (6db80f2-experimentals b python-patcher) - Apollo I Edition
+03/07/2015 05:01:58 PM [INFO    ]: ---------------
+03/07/2015 05:01:58 PM [INFO    ]: OS: Darwin (osx)
+03/07/2015 05:01:58 PM [DEBUG   ]: Handing everything over to Qt. Hold onto your butts.
+03/07/2015 05:01:58 PM [INFO    ]: Created bin/ directory.
+03/07/2015 05:01:58 PM [INFO    ]: Downloading rsync for OS: osx
+03/07/2015 05:01:58 PM [INFO    ]: Try 0/5: Downloading crap from https://kerbalspaceprogram.com/kspstore/dp/patcher/rsync/osx.zip to bin/rsync.zip...
+03/07/2015 05:01:59 PM [INFO    ]: Expected size: 292
+03/07/2015 05:01:59 PM [INFO    ]: Downloaded 292 of 292 bytes (100%)
+03/07/2015 05:01:59 PM [INFO    ]: DONE! Downloaded 292 of 292 bytes (100%)
+03/07/2015 05:01:59 PM [INFO    ]: Extraction complete!
+03/07/2015 05:02:05 PM [WARNING ]: Process closing.  Cleaning up...

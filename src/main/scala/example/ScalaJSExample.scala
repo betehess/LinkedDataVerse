@@ -1,13 +1,20 @@
 package example
 
 import scala.scalajs.js
+
 import js.annotation.JSExport
 import org.scalajs.dom
 import scalajs.concurrent.JSExecutionContext.Implicits.runNow
 
 import org.w3.banana._, io._
 import scala.concurrent.Future
+
+import dom.document
 import org.scalajs.dom.ext._
+import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.html
+
+import LinkedDataVerse.world._
 
 object LinkedDataClient {
 
@@ -60,6 +67,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
   import ops._
 
+  lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
+  lazy val world = new MainScene(el, 640, 480)
+
   // how to deconstruct a node
   def printNode(node: Rdf#Node): String = node.fold(
     { case URI(uriS) => uriS },
@@ -71,6 +81,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
     val paragraph = dom.document.createElement("p")
     paragraph.innerHTML = "<strong>It works!</strong>"
     dom.document.getElementById("playground").appendChild(paragraph)
+
+    world.render()
 
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
     f.onSuccess { case LDGraph(graph) =>
