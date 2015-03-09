@@ -34,17 +34,17 @@ object TextPlane {
 
   }
 
-  def apply (text: String, cssColor: String = "#ff0000"): Mesh = {
+  def apply (text: String, cssBackColor: String = "#eeeeee", cssForeColor: String = "#000000"): Mesh = {
 
     val canvas = document.createElement("canvas").asInstanceOf[html.Canvas]
     val ctx = canvas.getContext("2d")
     ctx.width = 256
     ctx.height = 128
     //ctx.textAlign = "center"
-    ctx.fillStyle = cssColor
+    ctx.fillStyle = cssBackColor
     ctx.fillRect(0, 0, 256, 256)
     ctx.font = "12pt Helvetica"
-    ctx.fillStyle = "#000000"
+    ctx.fillStyle = cssForeColor
     wrapText(ctx, text, 0, 30, 256, 22)
 
     val texture = new Texture(canvas)

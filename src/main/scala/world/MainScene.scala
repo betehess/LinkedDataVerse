@@ -3,8 +3,6 @@ package LinkedDataVerse.world
 import scala.scalajs.js
 
 import org.denigma.threejs._
-//import org.denigma.threejs.extensions.Container3D
-//import org.denigma.threejs.extensions.controls.CameraControls
 import LinkedDataVerse.controls._
 import LinkedDataVerse.scene.Container3D
 import LinkedDataVerse.Tween
@@ -22,7 +20,6 @@ class MainScene(
   var height:Double) extends Container3D {
 
   override def distance = 15
-  //override val controls = new NavControls(camera, this.container)
 
   private def randPos() = {
     val dist = 40
@@ -33,8 +30,8 @@ class MainScene(
       -half - Random.nextInt(dist))
   }
 
-  def addAText(text: String, color: String) {
-    val testText = TextPlane(text, color)
+  def addAText(text: String, backColor: String, foreColor: String) {
+    val testText = TextPlane(text, backColor, foreColor)
     testText.position.copy(randPos())
     scene.add(testText)
   }
@@ -44,7 +41,7 @@ class MainScene(
   val boxGeom = new BoxGeometry(1, 1, 1)
 
   val plainMaterial = new MeshLambertMaterial(js.Dynamic.literal(
-    color = new Color().setHex(0xffffff)
+    color = new Color().setHex(0xBF8415)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
   val meshes:Seq[Mesh] = Range(0, 50).map(i => {
@@ -59,16 +56,17 @@ class MainScene(
   // Derp, scala.js is forcing me to used LineDashed...
   // https://github.com/antonkulaga/scala-js-facades/issues/2
   val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
-    color = new Color().setHex(0x0088ff)
-  ).asInstanceOf[LineDashedMaterialParameters]);
+    color = new Color().setHex(0xdddddd)
+  ).asInstanceOf[LineDashedMaterialParameters])
 
-  val lineGeo = new Geometry();
-  meshes.foldLeft (meshes(0)) { (ac, el) =>
-    lineGeo.vertices.push(el.position.clone());
+  val lineGeo = new Geometry()
+  meshes.drop(meshes.length / 2).foldLeft (meshes(0)) { (ac, el) =>
+    lineGeo.vertices.push(el.position.clone())
     el
   }
-
-  //scene.add(new Line(lineGeo, lineMaterial));
+  val lines = new Line(lineGeo, lineMaterial)
+  lines.name = "lines"
+  scene.add(lines);
 
   val img = ImgUrMesh("dAvWkN8.jpg")
   img.position.set(2, 2, -5)
@@ -99,7 +97,7 @@ class MainScene(
     val mouseY = - ( clientY / height ) * 2 + 1
 
     val intersections = findIntersections(mouseX, mouseY)
-    val underMouse = intersections.groupBy(_.`object`).toMap
+    val underMouse = intersections.filter(i => i.`object`.name != "lines").groupBy(_.`object`).toMap
 
     underMouse
 

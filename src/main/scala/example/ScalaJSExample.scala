@@ -77,7 +77,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   def printNode(node: Rdf#Node): String = node.fold(
     { case URI(uriS) => {
       if (!loaded.contains(uriS)) {
-        world.addAText(uriS, "#8888ee")
+        world.addAText(uriS, "#268C3F", "#000000")
         loaded ::= uriS
       }
       uriS
@@ -86,7 +86,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
     { case Literal(lexicalForm, URI(uriType), langOpt) => {
       langOpt match {
         case Some("en") => {
-          world.addAText(lexicalForm.substring(0, 200), "#88eeee")
+          world.addAText(lexicalForm.substring(0, 200), "#253759", "#ffffff")
           lexicalForm
         }
         case _ => ""
@@ -94,6 +94,14 @@ class ScalaJSExample[Rdf <: RDF](implicit
       //lexicalForm + langOpt.map(l => " <- lang:"+l).getOrElse("")
     }}
   )
+
+  /*def addTriples(triples: Iterable[Rdf#Triple]): Unit = {
+    triples.foreach {
+        case Triple(s, p, o) => {
+          if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
+        }
+    }
+  }*/
 
   def main(): Unit = {
     val paragraph = dom.document.createElement("p")
@@ -104,7 +112,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
     f.onSuccess { case LDGraph(graph) =>
-      //graph.triples.foreach(println)
+      //addTriples(graph.triples)
       graph.triples.foreach { case Triple(s, p, o) => {
         if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
       } }
