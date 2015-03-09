@@ -20,7 +20,7 @@ resolvers += Resolver.url("bertails.org snapshots", new java.net.URL("http://ber
 resolvers += Resolver.url("inthenow-releases", url("http://dl.bintray.com/inthenow/releases"))(Resolver.ivyStylePatterns)
 
 //resolvers += bintray.Opts.resolver.repo("denigma", "denigma-releases")
-resolvers += Resolver.url("denigma-releases", url("http://dl.bintray.com/denigma/denigma-releases/"))(Resolver.ivyStylePatterns)
+resolvers += "denigma-releases" at "http://dl.bintray.com/denigma/denigma-releases/"
 
 libraryDependencies ++= Seq(
   "org.scala-js" %%% "scalajs-dom" % "0.8.0",
