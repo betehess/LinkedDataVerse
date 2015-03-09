@@ -34,20 +34,21 @@ object TextPlane {
 
   }
 
-
-  def apply (text: String): Mesh = {
+  def apply (text: String, cssColor: String = "#ff0000"): Mesh = {
 
     val canvas = document.createElement("canvas").asInstanceOf[html.Canvas]
     val ctx = canvas.getContext("2d")
     ctx.width = 256
     ctx.height = 128
-    //ctx.textAlign = "center";
-    ctx.font = "18pt Helvetica"
+    //ctx.textAlign = "center"
+    ctx.fillStyle = cssColor
+    ctx.fillRect(0, 0, 256, 256)
+    ctx.font = "12pt Helvetica"
     ctx.fillStyle = "#000000"
-    wrapText(ctx, text, 256 / 2, 30, 256, 22)
+    wrapText(ctx, text, 0, 30, 256, 22)
 
-    val texture = new Texture(canvas);
-    texture.needsUpdate = true;
+    val texture = new Texture(canvas)
+    texture.needsUpdate = true
 
     val canMaterial = new MeshBasicMaterial(js.Dynamic.literal(
       map = texture,

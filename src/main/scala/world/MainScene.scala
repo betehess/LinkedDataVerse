@@ -25,7 +25,7 @@ class MainScene(
   //override val controls = new NavControls(camera, this.container)
 
   private def randPos() = {
-    val dist = 80
+    val dist = 40
     val half = dist / 2
     new Vector3(
       Random.nextInt(dist) - half,
@@ -33,8 +33,8 @@ class MainScene(
       -half - Random.nextInt(dist))
   }
 
-  def addABox(text: String) {
-    val testText = TextPlane(text)
+  def addAText(text: String, color: String) {
+    val testText = TextPlane(text, color)
     testText.position.copy(randPos())
     scene.add(testText)
   }
@@ -47,7 +47,7 @@ class MainScene(
     color = new Color().setHex(0xffffff)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
-  val meshes:Seq[Mesh] = Range(0, 100).map(i => {
+  val meshes:Seq[Mesh] = Range(0, 50).map(i => {
 
     val mesh = new Mesh(boxGeom, plainMaterial)
     mesh.position.copy(randPos())

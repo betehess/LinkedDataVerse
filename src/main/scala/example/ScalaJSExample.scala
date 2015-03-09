@@ -70,11 +70,29 @@ class ScalaJSExample[Rdf <: RDF](implicit
   lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
   lazy val world = new MainScene(el, 640, 480)
 
+  // TEMP: Just testing adding some things from the data.
+  var loaded: List[String] = List()
+
   // how to deconstruct a node
   def printNode(node: Rdf#Node): String = node.fold(
-    { case URI(uriS) => uriS },
+    { case URI(uriS) => {
+      if (!loaded.contains(uriS)) {
+        world.addAText(uriS, "#8888ee")
+        loaded ::= uriS
+      }
+      uriS
+    }},
     { case BNode(label) => "_:" + label },
-    { case Literal(lexicalForm, URI(uriType), langOpt) => lexicalForm + langOpt.map(l => " <- lang:"+l).getOrElse("") }
+    { case Literal(lexicalForm, URI(uriType), langOpt) => {
+      langOpt match {
+        case Some("en") => {
+          world.addAText(lexicalForm.substring(0, 200), "#88eeee")
+          lexicalForm
+        }
+        case _ => ""
+      }
+      //lexicalForm + langOpt.map(l => " <- lang:"+l).getOrElse("")
+    }}
   )
 
   def main(): Unit = {
@@ -87,7 +105,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
     f.onSuccess { case LDGraph(graph) =>
       //graph.triples.foreach(println)
-      graph.triples.foreach { case Triple(s, p, o) => println(printNode(o)) }
+      graph.triples.foreach { case Triple(s, p, o) => {
+        if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
+      } }
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
