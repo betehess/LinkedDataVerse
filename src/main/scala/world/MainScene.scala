@@ -36,6 +36,12 @@ class MainScene(
     scene.add(testText)
   }
 
+  def addImage(url: String) {
+    val img = ImgUrMesh(url)
+    img.position.copy(randPos())
+    scene.add(img)
+  }
+
   WorldHelper.addLights(scene);
 
   val boxGeom = new BoxGeometry(1, 1, 1)

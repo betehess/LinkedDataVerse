@@ -34,6 +34,7 @@ object LinkedDataClient {
 sealed trait LDResult[+Rdf <: RDF]
 case class LDGraph[Rdf <: RDF](graph: Rdf#Graph) extends LDResult[Rdf]
 case object Image                                extends LDResult[Nothing]
+case object Unknown                              extends LDResult[Nothing]
 
 class LinkedDataClient[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
@@ -52,6 +53,10 @@ class LinkedDataClient[Rdf <: RDF](implicit
           jsonLdParser.read(input, url).map(graph => LDGraph(graph))
         case "image/gif" | "image/jpeg" | "image/pjpeg" | "image/png" | "image/svg+xml" | "image/tiff" =>
           Future.successful(Image)
+        case _ => {
+          println("Unhandled content type:", contentType)
+          Future.successful(Unknown)
+        }
       }
     }
   }
@@ -102,12 +107,16 @@ class ScalaJSExample[Rdf <: RDF](implicit
         case Triple(s, "http://dbpedia.org/property/hasPhotoCollection", o) => {
           println("photos: ", o)
         }
+        case Triple(s, "http://dbpedia.org/ontology/thumbnail", o) => {
+          println("adding one.")
+          world.addImage("http://commons.wikimedia.org/wiki/Special:FilePath/White_Wine_Glas.jpg")//o.toString())
+        }
         case Triple(s, p, o) => {
           o.fold (
             { case URI(uriS) => {
               if (!loaded.contains(uriS)) {
                 world.addAText(p.toString + " " + uriS, "#268C3F", "#000000")
-                println(p)
+                println(p, o)
                 loaded ::= uriS
               }
               uriS
@@ -138,11 +147,13 @@ class ScalaJSExample[Rdf <: RDF](implicit
     world.render()
 
     val f = ldclient.get("http://dbpedia.org/resource/Wine")
-    f.onSuccess { case LDGraph(graph) =>
-      addTripleMesh(graph.triples)
-      /*graph.triples.foreach { case Triple(s, p, o) => {
-        if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
-      } }*/
+    f.onSuccess {
+      case LDGraph(graph) => {
+        addTripleMesh(graph.triples)
+        /*graph.triples.foreach { case Triple(s, p, o) => {
+          if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
+        } }*/
+      }
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
