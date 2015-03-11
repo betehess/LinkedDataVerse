@@ -38,14 +38,14 @@ object TextPlane {
 
     val canvas = document.createElement("canvas").asInstanceOf[html.Canvas]
     val ctx = canvas.getContext("2d")
-    ctx.width = 256
-    ctx.height = 128
+    canvas.width = 256
+    canvas.height = 128
     //ctx.textAlign = "center"
     ctx.fillStyle = cssBackColor
-    ctx.fillRect(0, 0, 256, 256)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.font = "12pt Helvetica"
     ctx.fillStyle = cssForeColor
-    wrapText(ctx, text, 0, 30, 256, 22)
+    wrapText(ctx, text, 0, 30, canvas.width, 22)
 
     val texture = new Texture(canvas)
     texture.needsUpdate = true
@@ -56,7 +56,7 @@ object TextPlane {
       side = 2 /*THREE.DoubleSied*/
     ).asInstanceOf[MeshBasicMaterialParameters]);
 
-    val canGeometry = new PlaneGeometry(canvas.width, canvas.height, 1, 1);
+    val canGeometry = new BoxGeometry(canvas.width, canvas.height, 100);//, 1);
     val planeMesh = new Mesh(canGeometry, canMaterial);
     planeMesh.scale.set(0.01, 0.01, 0.01);
 
