@@ -73,7 +73,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   import ops._
 
   lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
-  lazy val world = new MainScene(el, 640, 480)
+  lazy val world = new MainScene(el, 640, 480, load _)
 
   // TEMP: Just testing adding some things from the data.
   var loaded: List[String] = List()
@@ -115,7 +115,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
           o.fold (
             { case URI(uriS) => {
               if (!loaded.contains(uriS)) {
-                world.addAText(p.toString + " " + uriS, "#268C3F", "#000000")
+                world.addAUrl(uriS, p.toString + " " + uriS, "#268C3F", "#000000")
                 println(p, o)
                 loaded ::= uriS
               }
@@ -139,6 +139,16 @@ class ScalaJSExample[Rdf <: RDF](implicit
     }
   }
 
+  def load(url: String) = {
+    val f = ldclient.get(url)
+    f.onSuccess {
+      case LDGraph(graph) => addTripleMesh(graph.triples)
+    }
+    f.onFailure { case e: Exception =>
+      e.printStackTrace
+    }
+  }
+
   def main(): Unit = {
     val paragraph = dom.document.createElement("p")
     paragraph.innerHTML = "<strong>It works!</strong>"
@@ -146,18 +156,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     world.render()
 
-    val f = ldclient.get("http://dbpedia.org/resource/Wine")
-    f.onSuccess {
-      case LDGraph(graph) => {
-        addTripleMesh(graph.triples)
-        /*graph.triples.foreach { case Triple(s, p, o) => {
-          if (p!= "http://www.w3.org/2002/07/owl#sameAs") println(printNode(o))
-        } }*/
-      }
-    }
-    f.onFailure { case e: Exception =>
-      e.printStackTrace
-    }
+    load("http://dbpedia.org/resource/Wine")
 
   }
 

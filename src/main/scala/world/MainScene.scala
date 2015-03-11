@@ -17,7 +17,8 @@ import dom.document
 class MainScene(
   val container:HTMLElement,
   var width:Double,
-  var height:Double) extends Container3D {
+  var height:Double,
+  load: String => Unit) extends Container3D {
 
   override def distance = 15
 
@@ -30,16 +31,27 @@ class MainScene(
       -half - Random.nextInt(dist))
   }
 
-  def addAText(text: String, backColor: String, foreColor: String) {
+  def addAText(text: String, backColor: String, foreColor: String) = {
     val testText = TextPlane(text, backColor, foreColor)
     testText.position.copy(randPos())
     scene.add(testText)
+    testText
   }
 
-  def addImage(url: String) {
+  def addAUrl(url: String, text: String, backColor: String, foreColor: String) = {
+    val testText = TextPlane(text, backColor, foreColor)
+    testText.position.copy(randPos())
+    val td = testText.asInstanceOf[js.Dynamic]
+    td._data = url;
+    scene.add(testText)
+    testText
+  }
+
+  def addImage(url: String) = {
     val img = ImgUrMesh(url)
     img.position.copy(randPos())
     scene.add(img)
+    img
   }
 
   WorldHelper.addLights(scene);
@@ -50,7 +62,7 @@ class MainScene(
     color = new Color().setHex(0xBF8415)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
-  val meshes:Seq[Mesh] = Range(0, 50).map(i => {
+  val meshes:Seq[Mesh] = Range(0, 6).map(i => {
 
     val mesh = new Mesh(boxGeom, plainMaterial)
     mesh.position.copy(randPos())
@@ -109,7 +121,7 @@ class MainScene(
 
   }
 
-  def tweenTo (pos: Vector3) = {
+  def tweenTo(pos: Vector3) = {
 
     val origCenter = controls.center.clone()
 
@@ -135,11 +147,11 @@ class MainScene(
       .start()
   }
 
+  var selectedItem = new Object3D() // tmp, tracking clicked item.
+
   override def onEnterFrame() {
 
     super.onEnterFrame()
-
-    //camera.position.z += (Math.sin(java.lang.System.currentTimeMillis() / 800.0) * 0.01)
 
     meshes(1).rotation.y += 0.01;
     meshes(2).rotation.y += 0.015;
@@ -152,7 +164,16 @@ class MainScene(
 
     if (!hits.isEmpty && controls.clicked) {
 
-      tweenTo(hits.head._1.position)
+      val ob = hits.head._1
+
+      if (ob == selectedItem) {
+        val sd = selectedItem.asInstanceOf[js.Dynamic]
+        //println(sd._data)
+        load(sd._data.asInstanceOf[String])
+      } else {
+        tweenTo(hits.head._1.position)
+        selectedItem = hits.head._1
+      }
 
     }
 
