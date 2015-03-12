@@ -16,55 +16,6 @@ import org.scalajs.dom.html
 
 import LinkedDataVerse.world._
 
-object LinkedDataClient {
-
-  implicit def apply[Rdf <: RDF](implicit
-    ops: RDFOps[Rdf],
-    n3Parser: n3js.io.N3jsTurtleParser[Rdf],
-    jsonLdParser: jsonldjs.io.JsonLdJsParser[Rdf]
-  ): LinkedDataClient[Rdf] = new LinkedDataClient[Rdf]
-
-  /** to be used for content negotiation with Linked Data */
-  val headers = Map(
-    "Accept" -> "text/turtle,application/ld+json;q=0.7,application/json;q=0.7,application/xhtml+xml;q=0.6,application/xml;q=0.6,*/*;q=0.5"
-  )
-
-}
-
-sealed trait LDResult[+Rdf <: RDF]
-case class LDGraph[Rdf <: RDF](graph: Rdf#Graph) extends LDResult[Rdf]
-case object Image                                extends LDResult[Nothing]
-case object Unknown                              extends LDResult[Nothing]
-
-class LinkedDataClient[Rdf <: RDF](implicit
-  ops: RDFOps[Rdf],
-  n3Parser: RDFReader[Rdf, Future, Turtle],
-  jsonLdParser: RDFReader[Rdf, Future, JsonLd]
-) {
-
-  def get(url: String): Future[LDResult[Rdf]] = {
-    Ajax.get(url, headers = LinkedDataClient.headers).flatMap { xhr =>
-      def input = new java.io.StringReader(xhr.responseText)
-      val contentType = xhr.getResponseHeader("Content-Type").split(";").head
-      contentType match {
-        case "text/turtle" =>
-          n3Parser.read(input, url).map(graph => LDGraph(graph))
-        case "application/ld+json" | "application/json" =>
-          jsonLdParser.read(input, url).map(graph => LDGraph(graph))
-        case "image/gif" | "image/jpeg" | "image/pjpeg" | "image/png" | "image/svg+xml" | "image/tiff" =>
-          Future.successful(Image)
-        case _ => {
-          println("Unhandled content type:", contentType)
-          Future.successful(Unknown)
-        }
-      }
-    }
-  }
-
-}
-
-
-
 class ScalaJSExample[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
   ldclient: LinkedDataClient[Rdf]
