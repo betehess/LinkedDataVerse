@@ -31,9 +31,11 @@ object LinkedDataClient {
 
 class LinkedDataClient[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
-  n3Parser: RDFReader[Rdf, Future, Turtle],
+  turtleParser: RDFReader[Rdf, Future, Turtle],
   jsonLdParser: RDFReader[Rdf, Future, JsonLd]
 ) {
+
+  import ops._
 
   def get(url: String): Future[LDResult[Rdf]] = {
     Ajax.get(url, headers = LinkedDataClient.headers).flatMap { xhr =>
@@ -41,9 +43,9 @@ class LinkedDataClient[Rdf <: RDF](implicit
       val contentType = xhr.getResponseHeader("Content-Type").split(";").head
       contentType match {
         case "text/turtle" =>
-          n3Parser.read(input, url).map(graph => LDGraph(graph))
+          turtleParser.read(input, url).map(graph => LDPointer(PointedGraph(URI(url), graph)))
         case "application/ld+json" | "application/json" =>
-          jsonLdParser.read(input, url).map(graph => LDGraph(graph))
+          jsonLdParser.read(input, url).map(graph => LDPointer(PointedGraph(URI(url), graph)))
         case "image/gif" | "image/jpeg" | "image/pjpeg" | "image/png" | "image/svg+xml" | "image/tiff" =>
           Future.successful(Image)
         case _ => {

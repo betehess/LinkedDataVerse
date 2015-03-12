@@ -93,7 +93,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   def load(url: String) = {
     val f = ldclient.get(url)
     f.onSuccess {
-      case LDGraph(graph) => addTripleMesh(graph.triples)
+      case LDPointer(PointedGraph(_, graph)) => addTripleMesh(graph.triples)
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
