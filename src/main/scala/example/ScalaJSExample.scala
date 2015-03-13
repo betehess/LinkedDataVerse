@@ -110,13 +110,12 @@ class ScalaJSExample[Rdf <: RDF](implicit
     load("http://dbpedia.org/resource/Wine")
 
     val kb = KB.empty[Rdf]
-
     for {
-      (LDPointedGraph(pg), kb1) <- kb.point(URI("http://www.w3.org/People/Berners-Lee/card#i"))
-
-    } yield {
-      kb.unfoldForward(pg).foreach(println)
+      LDPointedGraph(pg) <- kb.point(URI("http://www.w3.org/People/Berners-Lee/card#i"))
+    } {
+      // KB.cbd(pg).foreach(println)
     }
+
   }
 
 
