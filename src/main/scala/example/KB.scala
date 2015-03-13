@@ -46,37 +46,38 @@ object KB {
   * This implementation caches the results.
   */
 class KB[Rdf <: RDF](
-  var resources: Map[String, CachedResult[Rdf]]
+  private var resources: Map[String, CachedResult[Rdf]]
 ) {
+
+  def get(hashlessUrl: Rdf#URI)(implicit ops: RDFOps[Rdf], ldclient: LinkedDataClient[Rdf]): Future[CachedResult[Rdf]] = {
+    import ops._
+    val URI(urlS) = hashlessUrl
+    resources.get(urlS) match {
+      case None =>
+        ldclient.get(urlS).map { result =>
+          resources += (urlS -> result)
+          result
+        }
+
+      case Some(result) =>
+        Future.successful(result)
+    }
+
+  }
 
   /** points to the given node on the Web */
   def point(url: Rdf#URI)(implicit ops: RDFOps[Rdf], ldclient: LinkedDataClient[Rdf]): Future[LDResult[Rdf]] = {
     import ops._
-    val URI(urlS) = url
-    // we only call hashless URLs
-    val hashlessUrl = urlS.replaceAll("#[^#]*$", "")
-    resources.get(hashlessUrl) match {
-      case None =>
-        ldclient.get(hashlessUrl).map { result =>
-          resources += (hashlessUrl -> result)
-          result match {
-            case LDGraph(graph) => LDPointedGraph(PointedGraph(url, graph))
-            case Image          => Image
-            case Unknown        => Unknown
-          }
-        }
-
-      case Some(LDGraph(graph)) =>
-        val ldresult = LDPointedGraph(PointedGraph(url, graph))
-        Future.successful(ldresult)
-
-      case Some(Image) =>
-        Future.successful(Image)
-
-      case Some(Unknown) =>
-        Future.successful(Unknown)
-
+    val hashlessUrl = {
+      val URI(urlS) = url
+      URI(urlS.replaceAll("#[^#]*$", ""))
     }
+    this.get(hashlessUrl).map {
+      case LDGraph(graph) => LDPointedGraph(PointedGraph(url, graph))
+      case Image          => Image
+      case Unknown        => Unknown
+    }
+
   }
 
 }

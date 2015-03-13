@@ -113,7 +113,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
     for {
       LDPointedGraph(pg) <- kb.point(URI("http://www.w3.org/People/Berners-Lee/card#i"))
     } {
-      // KB.cbd(pg).foreach(println)
+      KB.cbd(pg).foreach(println)
     }
 
   }
