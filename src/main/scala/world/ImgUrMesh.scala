@@ -11,9 +11,13 @@ object ImgUrMesh {
 
     val url = if (imgName.startsWith("http")) imgName else "http://i.imgur.com/" + imgName
 
+    val texture = ImageUtils.loadTexture(url)
+    println("Textureded:", texture)
+
     val material = new MeshBasicMaterial(js.Dynamic.literal(
-      map = ImageUtils.loadTexture(url),
-      side = 2 /*THREE.DoubleSide (throwing runtime weirdness*/
+      map = texture,
+      side = 2 /*THREE.DoubleSide (throwing runtime weirdness*/,
+      transparent = true
     ).asInstanceOf[MeshBasicMaterialParameters])
 
     val geom = new PlaneGeometry(1, 1, 4, 4)

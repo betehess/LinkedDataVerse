@@ -47,9 +47,9 @@ class MainScene(
     testText
   }
 
-  def addImage(url: String) = {
+  def addImage(pos: Vector3 = randPos(), url: String) = {
     val img = ImgUrMesh(url)
-    img.position.copy(randPos())
+    img.position.copy(pos)
     scene.add(img)
     img
   }
@@ -86,7 +86,7 @@ class MainScene(
   lines.name = "lines"
   scene.add(lines);
 
-  val img = ImgUrMesh("dAvWkN8.jpg")
+  val img = ImgUrMesh("http://mrspeaker.net/images/rooster.png")// "dAvWkN8.jpg")
   img.position.set(2, 2, -5)
   scene.add(img)
 
@@ -105,7 +105,7 @@ class MainScene(
 
     raycaster
       .intersectObjects(scene.children)
-      .sortWith((a, b) => a.point.distanceTo(vector) < b.point.distanceTo(vector))
+      .sortWith((a, b) => b.point.distanceTo(vector) < a.point.distanceTo(vector))
       .toList
   }
 
@@ -168,8 +168,9 @@ class MainScene(
 
       if (ob == selectedItem) {
         val sd = selectedItem.asInstanceOf[js.Dynamic]
-        //println(sd._data)
-        load(sd._data.asInstanceOf[String])
+        if (!js.isUndefined(sd._data)) {
+          load(sd._data.asInstanceOf[String])
+        }
       } else {
         tweenTo(hits.head._1.position)
         selectedItem = hits.head._1

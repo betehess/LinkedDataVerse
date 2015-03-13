@@ -75,10 +75,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
               //if (!loaded.contains(uriS)) {
 
                 world.addAUrl(
-                  new Vector3(
-                    pos.x + xo,
-                    pos.y + yo,
-                    pos.z),
+                  new Vector3(pos.x + xo, pos.y + yo, pos.z),
                   uriS,
                   p.toString + " " + uriS,
                   "#268C3F", "#000000")
@@ -117,8 +114,30 @@ class ScalaJSExample[Rdf <: RDF](implicit
     if (!loaded.contains(uri)) {
 
       val kb = KB.empty[Rdf]
-      for {
-        LDPointedGraph(pg) <- kb.point(URI(uri))
+      val kbRes = kb.point(URI(uri))
+
+      kbRes map { res =>
+        res match {
+          case Image => {
+            val pos = world.camera.position.clone().add(new Vector3(0, 0, -3))//, vector.sub(camera.position).normalize()
+            world.addImage(pos, uri)
+          }
+
+          case LDPointedGraph(pg) => {
+            val triples = KB.cbd(pg)
+            if (!triples.isEmpty) {
+              worldPos.z = worldPos.z - 15.0
+              addTripleMesh(worldPos, triples)
+              world.tweenTo(worldPos.add(new Vector3(0, 0, 5)))
+            }
+          }
+
+          case _ => println("Unknown type")
+        }
+      }
+
+      /*for {
+        LDPointedGraph(pg) <- kbRes
       } {
         //KB.cbd(pg).foreach(println)
         val triples = KB.cbd(pg)
@@ -129,7 +148,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
           addTripleMesh(worldPos, triples)
           world.tweenTo(worldPos.add(new Vector3(0, 0, 5)))
         }
-      }
+      }*/
       loaded ::= uri
     }
   }
