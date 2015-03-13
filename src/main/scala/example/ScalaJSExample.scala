@@ -14,6 +14,7 @@ import org.scalajs.dom.ext._
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.html
 
+import org.denigma.threejs._
 import LinkedDataVerse.world._
 
 class ScalaJSExample[Rdf <: RDF](implicit
@@ -25,6 +26,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
   lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
   lazy val world = new MainScene(el, 640, 480, load _)
+
+  var worldPos = new Vector3(0, 0, -10)
 
   // TEMP: Just testing adding some things from the data.
   var loaded: List[String] = List()
@@ -51,28 +54,45 @@ class ScalaJSExample[Rdf <: RDF](implicit
     }}
   )
 
-  def addTripleMesh(triples: Iterable[Rdf#Triple]): Unit = {
+  def addTripleMesh(pos: Vector3, triples: Iterable[Rdf#Triple]): Unit = {
+    var xo = 0d
+    var yo = 0d
+    val xgap = 3.6
+    val ygap = 1.8
+    val columns = 4
+    var boxesAdded = 0
+
     triples.foreach {
         // Testing various types
         case Triple(s, "http://www.w3.org/2002/07/owl#sameAs", o) => {}
-        case Triple(s, "http://dbpedia.org/property/hasPhotoCollection", o) => {
-          println("photos: ", o)
-        }
-        case Triple(s, "http://dbpedia.org/ontology/thumbnail", o) => {
-          println("adding one.")
-          world.addImage("http://commons.wikimedia.org/wiki/Special:FilePath/White_Wine_Glas.jpg")//o.toString())
-        }
+        //case Triple(s, "http://dbpedia.org/ontology/thumbnail", o) => {
+        //  world.addImage("http://commons.wikimedia.org/wiki/Special:FilePath/White_Wine_Glas.jpg")//o.toString())
+        //}
         case Triple(s, p, o) => {
+          //println(p)
           o.fold (
             { case URI(uriS) => {
-              if (!loaded.contains(uriS)) {
-                world.addAUrl(uriS, p.toString + " " + uriS, "#268C3F", "#000000")
-                //println(p, o)
-                loaded ::= uriS
-              }
+              //if (!loaded.contains(uriS)) {
+
+                world.addAUrl(
+                  new Vector3(
+                    pos.x + xo,
+                    pos.y + yo,
+                    pos.z),
+                  uriS,
+                  p.toString + " " + uriS,
+                  "#268C3F", "#000000")
+
+                xo += xgap
+                if (xo >= xgap * columns) {
+                  xo = 0
+                  yo += ygap
+                }
+                //loaded ::= uriS
+              //}
               uriS
             }},
-            { case BNode(label) => "_:" + label },
+            { case BNode(label) => println("_:" + label); "_:" + label },
             { case Literal(lexicalForm, URI(uriType), langOpt) => {
               langOpt match {
                 case Some("en") => {
@@ -90,13 +110,27 @@ class ScalaJSExample[Rdf <: RDF](implicit
     }
   }
 
-  def load(url: String) = {
-    val f = ldclient.get(url)
-    f.onSuccess {
-      case LDGraph(graph) => addTripleMesh(graph.triples)
-    }
-    f.onFailure { case e: Exception =>
-      e.printStackTrace
+  def load(uri: String):Unit = {
+
+    println("LOADING!", uri)
+
+    if (!loaded.contains(uri)) {
+
+      val kb = KB.empty[Rdf]
+      for {
+        LDPointedGraph(pg) <- kb.point(URI(uri))
+      } {
+        //KB.cbd(pg).foreach(println)
+        val triples = KB.cbd(pg)
+        if (!triples.isEmpty) {
+          worldPos.z = worldPos.z - 15.0
+          println(worldPos.x, worldPos.y, worldPos.z)
+
+          addTripleMesh(worldPos, triples)
+          world.tweenTo(worldPos.add(new Vector3(0, 0, 5)))
+        }
+      }
+      loaded ::= uri
     }
   }
 
@@ -107,14 +141,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     world.render()
 
-    load("http://dbpedia.org/resource/Wine")
-
-    val kb = KB.empty[Rdf]
-    for {
-      LDPointedGraph(pg) <- kb.point(URI("http://www.w3.org/People/Berners-Lee/card#i"))
-    } {
-      KB.cbd(pg).foreach(println)
-    }
+    load("http://www.w3.org/People/Berners-Lee/card#i")
 
   }
 

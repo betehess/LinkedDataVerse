@@ -38,9 +38,9 @@ class MainScene(
     testText
   }
 
-  def addAUrl(url: String, text: String, backColor: String, foreColor: String) = {
+  def addAUrl(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
     val testText = TextPlane(text, backColor, foreColor)
-    testText.position.copy(randPos())
+    testText.position.copy(pos)
     val td = testText.asInstanceOf[js.Dynamic]
     td._data = url;
     scene.add(testText)
