@@ -67,7 +67,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
             { case URI(uriS) => {
               if (!loaded.contains(uriS)) {
                 world.addAUrl(uriS, p.toString + " " + uriS, "#268C3F", "#000000")
-                println(p, o)
+                //println(p, o)
                 loaded ::= uriS
               }
               uriS
@@ -93,7 +93,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   def load(url: String) = {
     val f = ldclient.get(url)
     f.onSuccess {
-      case LDPointer(PointedGraph(_, graph)) => addTripleMesh(graph.triples)
+      case LDGraph(graph) => addTripleMesh(graph.triples)
     }
     f.onFailure { case e: Exception =>
       e.printStackTrace
@@ -109,6 +109,14 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     load("http://dbpedia.org/resource/Wine")
 
+    val kb = KB.empty[Rdf]
+
+    for {
+      (LDPointedGraph(pg), kb1) <- kb.point(URI("http://www.w3.org/People/Berners-Lee/card#i"))
+
+    } yield {
+      kb.unfoldForward(pg).foreach(println)
+    }
   }
 
 
@@ -118,7 +126,7 @@ import org.w3.banana.n3js._
 
 object Implicits {
 
-  implicit val n3Parser = new n3js.io.N3jsTurtleParser[N3js]
+  implicit val turtleParser = new n3js.io.N3jsTurtleParser[N3js]
 
   implicit val jsonLdParser = new jsonldjs.io.JsonLdJsParser[N3js]
 

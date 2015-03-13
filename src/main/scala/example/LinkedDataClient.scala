@@ -37,21 +37,30 @@ class LinkedDataClient[Rdf <: RDF](implicit
 
   import ops._
 
-  def get(url: String): Future[LDResult[Rdf]] = {
-    Ajax.get(url, headers = LinkedDataClient.headers).flatMap { xhr =>
+  def get(url: String): Future[CachedResult[Rdf]] = {
+    val hashlessUrl = url.replaceAll("#[^#]*$", "")
+
+    Ajax.get(hashlessUrl, headers = LinkedDataClient.headers).flatMap { xhr =>
+
       def input = new java.io.StringReader(xhr.responseText)
+
       val contentType = xhr.getResponseHeader("Content-Type").split(";").head
+
       contentType match {
+
         case "text/turtle" =>
-          turtleParser.read(input, url).map(graph => LDPointer(PointedGraph(URI(url), graph)))
+          turtleParser.read(input, url).map(graph => LDGraph(graph))
+
         case "application/ld+json" | "application/json" =>
-          jsonLdParser.read(input, url).map(graph => LDPointer(PointedGraph(URI(url), graph)))
+          jsonLdParser.read(input, url).map(graph => LDGraph(graph))
+
         case "image/gif" | "image/jpeg" | "image/pjpeg" | "image/png" | "image/svg+xml" | "image/tiff" =>
           Future.successful(Image)
-        case _ => {
+
+        case _ =>
           println("Unhandled content type:", contentType)
           Future.successful(Unknown)
-        }
+
       }
     }
   }
