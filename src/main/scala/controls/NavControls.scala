@@ -30,7 +30,7 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   var userRotateSpeed = 1.0
 
   var userPan = true
-  var userPanSpeed = 0.3
+  var userPanSpeed = 0.09
 
   var autoRotate = false
   var autoRotateSpeed = 2.0 // 30 seconds per round when fps is 60

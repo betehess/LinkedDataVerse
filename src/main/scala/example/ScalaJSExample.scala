@@ -32,14 +32,15 @@ class ScalaJSExample[Rdf <: RDF](implicit
   // TEMP: Just testing adding some things from the data.
   var loaded: List[String] = List()
 
-  class Node(val triples: Iterable[Rdf#Triple], val pos: Vector3) {
+
+  class Node(val triples: Iterable[Rdf#Triple], val pos: Vector3, isBNode: Boolean) {
 
     println("Adding node with " + triples.size +" triples")
 
-    val head = world.addASphere(pos)
-    head.scale.set(0.5, 0.5, 0.5)
+    val head = world.addASphere(pos, isBNode)
+    head.scale.set(0.75, 0.75, 0.75)
 
-    def add (scene: Scene): Unit = {
+    def add (scene: Scene): Object3D = {
 
       // Crappy grid layout
       val xgap = 4.6
@@ -47,6 +48,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
       val columns = 4
 
       var xo = 0d
+      val xo2 = -xgap * (columns / 2) + (xgap / 2)
       var yo = 0d
       var boxesAdded = 0
 
@@ -56,27 +58,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
           o.fold (
             { case URI(uriS) =>
 
-              val displayPred = p.toString()
-              val displayUri = uriS
-
-              val headPos = world.localToWorld(head)
-              val nodePos = new Vector3(xo, yo, -10)
-
-              head.add(world.createAUri(
-                nodePos,
-                uriS, displayUri, "#268C3F", "#000000"))
-
-              head.add(
-                world.createLine(headPos, nodePos)
-              )
-
-              val dir = nodePos.clone().sub(headPos)
-              var len = dir.length()
-              val mid = dir.normalize().multiplyScalar(len * 0.75)
-              val fin = headPos.clone().add(mid)
-              head.add(
-                world.createLabel(fin, displayPred)
-              )
+              val nodePos = new Vector3(xo + xo2, yo, -10)
+              head.add(world.createAUri(nodePos, uriS, uriS, "#268C3F", "#000000"))
+              world.addConnector(uriS, p.toString(), head, nodePos)
 
               // Crappy grid layout
               xo += xgap
@@ -89,20 +73,31 @@ class ScalaJSExample[Rdf <: RDF](implicit
             },
             { case bnode@BNode(label) =>
               val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              worldPos.z -= 9
+              //worldPos.z -= 9
 
               println("BNODE:", label)
-              val node2 = new Node(t, worldPos)
+              val node2 = new Node(t, new Vector3(xo + xo2, yo, -10), true)
               node2.add(world.scene)
+              head.add(node2.head)
 
+              world.addConnector(label, p.toString, head, new Vector3(xo + xo2, yo, -10))
+
+
+              xo += xgap
+              if (xo >= xgap * columns) {
+                xo = 0
+                yo += ygap
+              }
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
 
                 val predicate = p.toString()
                 //val shortForm = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
                 head.add(world.createTextBox(
-                  new Vector3(xo, yo, -10),
+                  new Vector3(xo + xo2, yo, -10),
                   lexicalForm.substring(0, 200), "#253759", "#ffffff"))
+
+                world.addConnector(lexicalForm, p.toString, head, new Vector3(xo + xo2, yo, -10))
 
                 // Crappy grid layout, again
                 xo += xgap
@@ -114,6 +109,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
             }
           )
       }
+
+      head
     }
   }
 
@@ -141,7 +138,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
             if (!triples.isEmpty) {
 
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
-              val node = new Node(triples, worldPos)
+              val node = new Node(triples, worldPos, false)
               node.add(world.scene)
               val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
               world.tweenTo(focusPoint)

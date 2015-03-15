@@ -83,8 +83,8 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     mesh
   }
 
-  def addASphere(pos: Vector3 = randPos()) = {
-    val mesh = new Mesh(sphereGeom, plainMaterial)
+  def addASphere(pos: Vector3 = randPos(), useOffColor: Boolean = false) = {
+    val mesh = new Mesh(sphereGeom, if (useOffColor) offMaterial else plainMaterial)
     mesh.position.copy(pos)
     scene.add(mesh)
     mesh
@@ -123,6 +123,21 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     val mesh = TextPlane(msg, "#000000", "#ffffff", 256, 45)
     mesh.position.copy(point)
     mesh
+  }
+
+  def addConnector(obj: String, predicate: String, head: Object3D, nodePos: Vector3) = {
+
+    val headPos = localToWorld(head)
+
+    head.add(createLine(headPos, nodePos))
+
+    val dir = nodePos.clone().sub(headPos)
+    var len = dir.length()
+    val mid = dir.normalize().multiplyScalar(len * 0.75)
+    val fin = headPos.clone().add(mid)
+    head.add(createLabel(fin, predicate))
+
+
   }
 
   WorldHelper.addLights(scene);
