@@ -13,9 +13,7 @@ persistLauncher in Test := false
 
 testFrameworks += new TestFramework("utest.runner.Framework")
 
-val bananaVersion = "0.8.0.20150307"
-
-resolvers += Resolver.url("bertails.org snapshots", new java.net.URL("http://bertails.org/repo/"))(Resolver.ivyStylePatterns)
+val bananaVersion = "0.8.1"
 
 resolvers += Resolver.url("inthenow-releases", url("http://dl.bintray.com/inthenow/releases"))(Resolver.ivyStylePatterns)
 
