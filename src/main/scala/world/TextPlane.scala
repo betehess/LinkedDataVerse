@@ -11,7 +11,17 @@ object TextPlane {
 
   def wrapText(context: js.Dynamic, text: String, x: Int, y: Int, maxWidth: Int, lineHeight: Int ) {
 
-    val words = text.split(" ")
+    val words:List[String] = text.split(" ").toList
+      .foldLeft(List():List[String])( (a, b) => {
+        //a ++ (b.split("/").mkString(" / ").split(""))
+        if (b.length > 33) {
+          a :+ b.take(15) + "..." + b.takeRight(15)
+        } else {
+          a :+ b
+        }
+
+      })
+
     var line = ""
     var yo = y
 
@@ -56,7 +66,7 @@ object TextPlane {
       side = 2 /*THREE.DoubleSied*/
     ).asInstanceOf[MeshBasicMaterialParameters]);
 
-    val canGeometry = new BoxGeometry(canvas.width, canvas.height, 100);//, 1);
+    val canGeometry = new BoxGeometry(canvas.width, canvas.height, 10);//, 1);
     val planeMesh = new Mesh(canGeometry, canMaterial);
     planeMesh.scale.set(0.01, 0.01, 0.01);
 

@@ -15,10 +15,11 @@ import org.scalajs.dom
 import dom.document
 
 class MainScene(
+  val initialUri: String,
   val container:HTMLElement,
   var width:Double,
   var height:Double,
-  load: String => Unit) extends Container3D {
+  load: (String, Option[Object3D]) => Unit) extends Container3D {
 
   override def distance = 15
 
@@ -31,63 +32,104 @@ class MainScene(
       -half - Random.nextInt(dist))
   }
 
-  def addAText(text: String, backColor: String, foreColor: String) = {
-    val testText = TextPlane(text, backColor, foreColor)
-    testText.position.copy(randPos())
-    scene.add(testText)
-    testText
+  def localToWorld(ob: Object3D) = {
+    var pos = new Vector3()
+    pos.setFromMatrixPosition(ob.matrixWorld)
   }
 
-  def addAUrl(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
-    val testText = TextPlane(text, backColor, foreColor)
-    testText.position.copy(pos)
-    val td = testText.asInstanceOf[js.Dynamic]
-    td._data = url;
-    scene.add(testText)
-    testText
+def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: String) = {
+    val mesh = TextPlane(text, backColor, foreColor)
+    mesh.position.copy(pos)
+    mesh
+  }
+
+  def addTextBox(pos: Vector3, text: String, backColor: String, foreColor: String) = {
+    val mesh = createTextBox(pos, text, backColor, foreColor)
+    scene.add(mesh)
+    mesh
+  }
+
+  def createAUri(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
+    val uriText = TextPlane(text, backColor, foreColor)
+    uriText.position.copy(pos)
+    uriText.userData = js.Dynamic.literal(
+      url = url
+    )
+    uriText
+  }
+
+  def addAUri(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
+    val uriText = createAUri(pos, url, text, backColor, foreColor)
+    scene.add(uriText)
+    uriText
+  }
+
+  def createImage(pos: Vector3 = randPos(), url: String) = {
+    val img = ImgUrMesh(url)
+    img.position.copy(pos)
+    img
   }
 
   def addImage(pos: Vector3 = randPos(), url: String) = {
-    val img = ImgUrMesh(url)
-    img.position.copy(pos)
+    val img = createImage(pos, url)
     scene.add(img)
     img
+  }
+
+  def addABox(pos: Vector3 = randPos()) = {
+    val mesh = new Mesh(boxGeom, plainMaterial)
+    mesh.position.copy(pos)
+    scene.add(mesh)
+    mesh
+  }
+
+  def addASphere(pos: Vector3 = randPos()) = {
+    val mesh = new Mesh(sphereGeom, plainMaterial)
+    mesh.position.copy(pos)
+    scene.add(mesh)
+    mesh
+  }
+
+  def addLine(a: Vector3, b: Vector3) = {
+
+    // Derp, scala.js is forcing me to used LineDashed...
+    // https://github.com/antonkulaga/scala-js-facades/issues/2
+    val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
+      lineWidth = 5,
+      color = new Color().setHex(0x6699dd)
+    ).asInstanceOf[LineDashedMaterialParameters])
+
+    val lineGeo = new Geometry()
+    lineGeo.vertices.push(a.clone())
+    lineGeo.vertices.push(b.clone())
+
+    val lines = new Line(lineGeo, lineMaterial)
+    lines.name = "lines"
+    scene.add(lines);
+
+    lines
+
   }
 
   WorldHelper.addLights(scene);
 
   val boxGeom = new BoxGeometry(1, 1, 1)
+  val sphereGeom = new SphereGeometry(1, 10, 10)
 
   val plainMaterial = new MeshLambertMaterial(js.Dynamic.literal(
     color = new Color().setHex(0xBF8415)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
-  val meshes:Seq[Mesh] = Range(0, 6).map(i => {
+  val offMaterial = new MeshLambertMaterial(js.Dynamic.literal(
+    color = new Color().setHex(0x15BF84)
+  ).asInstanceOf[MeshLambertMaterialParameters])
 
-    val mesh = new Mesh(boxGeom, plainMaterial)
-    mesh.position.copy(randPos())
-    scene.add(mesh)
-    mesh
 
-  })
-
-  // Derp, scala.js is forcing me to used LineDashed...
-  // https://github.com/antonkulaga/scala-js-facades/issues/2
-  val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
-    color = new Color().setHex(0xdddddd)
-  ).asInstanceOf[LineDashedMaterialParameters])
-
-  val lineGeo = new Geometry()
-  meshes.drop(meshes.length / 2).foldLeft (meshes(0)) { (ac, el) =>
-    lineGeo.vertices.push(el.position.clone())
-    el
-  }
-  val lines = new Line(lineGeo, lineMaterial)
-  lines.name = "lines"
-  scene.add(lines);
-
-  val img = ImgUrMesh("http://mrspeaker.net/images/rooster.png")// "dAvWkN8.jpg")
+  val img = ImgUrMesh("http://www.w3.org/DesignIssues/diagrams/lod/597992118v2_350x350_Back.jpg")
   img.position.set(2, 2, -5)
+  val imgd = img.asInstanceOf[js.Dynamic]
+  //imgd.userData.url = "http://www.w3.org/People/Berners-Lee/card#i"
+  imgd.userData.url = initialUri
   scene.add(img)
 
   tweenTo(img.position)
@@ -104,7 +146,7 @@ class MainScene(
       .set(camera.position, vector.sub(camera.position).normalize())
 
     raycaster
-      .intersectObjects(scene.children)
+      .intersectObjects(scene.children, true)
       .sortWith((a, b) => b.point.distanceTo(vector) < a.point.distanceTo(vector))
       .toList
   }
@@ -115,7 +157,9 @@ class MainScene(
     val mouseY = - ( clientY / height ) * 2 + 1
 
     val intersections = findIntersections(mouseX, mouseY)
-    val underMouse = intersections.filter(i => i.`object`.name != "lines").groupBy(_.`object`).toMap
+    val underMouse = intersections.filter(i => {
+      i.`object`.name != "lines" && i.`object`.visible == true
+    }).groupBy(_.`object`).toMap
 
     underMouse
 
@@ -153,9 +197,6 @@ class MainScene(
 
     super.onEnterFrame()
 
-    meshes(1).rotation.y += 0.01;
-    meshes(2).rotation.y += 0.015;
-
     val hits = onCursorMove(
       controls.lastMousePos._1,
       controls.lastMousePos._2,
@@ -168,11 +209,18 @@ class MainScene(
 
       if (ob == selectedItem) {
         val sd = selectedItem.asInstanceOf[js.Dynamic]
-        if (!js.isUndefined(sd._data)) {
-          load(sd._data.asInstanceOf[String])
+        if (!js.isUndefined(sd.userData.url)) {
+          load(sd.userData.url.asInstanceOf[String], Some(ob))
+        } else {
+          // Toggle the children
+          ob.traverse((c: Object3D) => if (c != ob) {
+            c.visible = !c.visible
+          })
         }
       } else {
-        tweenTo(hits.head._1.position)
+        var pos = new Vector3()
+        pos.setFromMatrixPosition(ob.matrixWorld)
+        tweenTo(pos)
         selectedItem = hits.head._1
       }
 
@@ -186,10 +234,11 @@ class MainScene(
 
   def onResize () = {
     width = dom.window.innerWidth
-    camera.aspect = dom.window.innerWidth / height
+    height = dom.window.innerHeight
+    camera.aspect = width / height
     camera.updateProjectionMatrix()
-    renderer.setSize(dom.window.innerWidth, height);
-    width
+    renderer.setSize(width, height)
+    (width, height)
   }
   dom.window.addEventListener("resize", (e:dom.Event) => onResize(), false)
   onResize()

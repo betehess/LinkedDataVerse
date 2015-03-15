@@ -12,7 +12,6 @@ object ImgUrMesh {
     val url = if (imgName.startsWith("http")) imgName else "http://i.imgur.com/" + imgName
 
     val texture = ImageUtils.loadTexture(url)
-    println("Textureded:", texture)
 
     val material = new MeshBasicMaterial(js.Dynamic.literal(
       map = texture,

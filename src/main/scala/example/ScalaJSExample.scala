@@ -25,130 +25,129 @@ class ScalaJSExample[Rdf <: RDF](implicit
   import ops._
 
   lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
-  lazy val world = new MainScene(el, 640, 480, load _)
+  lazy val world = new MainScene("http://bertails.org/alex#me", el, 640, 480, load _)
 
   var worldPos = new Vector3(0, 0, -10)
 
   // TEMP: Just testing adding some things from the data.
   var loaded: List[String] = List()
 
-  // how to deconstruct a node
-  def printNode(node: Rdf#Node): String = node.fold(
-    { case URI(uriS) => {
-      if (!loaded.contains(uriS)) {
-        world.addAText(uriS, "#268C3F", "#000000")
-        loaded ::= uriS
-      }
-      uriS
-    }},
-    { case BNode(label) => "_:" + label },
-    { case Literal(lexicalForm, URI(uriType), langOpt) => {
-      langOpt match {
-        case Some("en") => {
-          world.addAText(lexicalForm.substring(0, 200), "#253759", "#ffffff")
-          lexicalForm
-        }
-        case _ => ""
-      }
-      //lexicalForm + langOpt.map(l => " <- lang:"+l).getOrElse("")
-    }}
-  )
+  class Node(val triples: Iterable[Rdf#Triple], val pos: Vector3) {
 
-  def addTripleMesh(pos: Vector3, triples: Iterable[Rdf#Triple]): Unit = {
-    var xo = 0d
-    var yo = 0d
-    val xgap = 3.6
-    val ygap = 1.8
-    val columns = 4
-    var boxesAdded = 0
+    println("Adding node with " + triples.size +" triples")
 
-    triples.foreach {
+    val head = world.addASphere(pos)
+    head.scale.set(0.5, 0.5, 0.5)
+
+    def add (scene: Scene): Unit = {
+
+      // Crappy grid layout
+      val xgap = 3.6
+      val ygap = 1.8
+      val columns = 4
+
+      var xo = 0d
+      var yo = 0d
+      var boxesAdded = 0
+
+      triples.foreach {
         // Testing various types
-        case Triple(s, "http://www.w3.org/2002/07/owl#sameAs", o) => {}
-        //case Triple(s, "http://dbpedia.org/ontology/thumbnail", o) => {
-        //  world.addImage("http://commons.wikimedia.org/wiki/Special:FilePath/White_Wine_Glas.jpg")//o.toString())
-        //}
-        case Triple(s, p, o) => {
-          //println(p)
+        case Triple(s, p, o) =>
           o.fold (
-            { case URI(uriS) => {
-              //if (!loaded.contains(uriS)) {
+            { case URI(uriS) =>
 
-                world.addAUrl(
-                  new Vector3(pos.x + xo, pos.y + yo, pos.z),
-                  uriS,
-                  p.toString + " " + uriS,
-                  "#268C3F", "#000000")
+              val displayPred = p.toString()
+              val displayUri = uriS
 
+              head.add(world.createAUri(
+                new Vector3(xo, yo, -10),
+                uriS, p.toString + " " + displayUri, "#268C3F", "#000000"))
+
+              // Crappy grid layout
+              xo += xgap
+              if (xo >= xgap * columns) {
+                xo = 0
+                yo += ygap
+              }
+              println("URI:", uriS)
+              uriS
+            },
+            { case bnode@BNode(label) =>
+              val t = triples.filter { case Triple(s, _, _) => s == bnode }
+              worldPos.z -= 9
+
+              println("BNODE:", label)
+              val node2 = new Node(t, worldPos)
+              node2.add(world.scene)
+
+            },
+            { case Literal(lexicalForm, URI(uriType), langOpt) =>
+
+                val predicate = p.toString()
+                val shortForm = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
+                head.add(world.createTextBox(
+                  new Vector3(xo, yo, -10),
+                  shortForm + lexicalForm.substring(0, 200), "#253759", "#ffffff"))
+
+                // Crappy grid layout, again
                 xo += xgap
                 if (xo >= xgap * columns) {
                   xo = 0
                   yo += ygap
                 }
-                //loaded ::= uriS
-              //}
-              uriS
-            }},
-            { case BNode(label) => println("_:" + label); "_:" + label },
-            { case Literal(lexicalForm, URI(uriType), langOpt) => {
-              langOpt match {
-                case Some("en") => {
-                  val predicate = p.toString()
-                  val deets = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
-                  world.addAText(deets + lexicalForm.substring(0, 200), "#253759", "#ffffff")
-                  lexicalForm
-                }
-                case _ => ""
-              }
-            }}
+                println("Literal", lexicalForm)
+            }
           )
-
-        }
+      }
     }
   }
 
-  def load(uri: String):Unit = {
+  def load(uri: String, start: Option[Object3D]):Unit = {
 
-    println("LOADING!", uri)
+    println("Loading:", uri, start.isEmpty)
 
     if (!loaded.contains(uri)) {
+
+      val newPos = start match {
+        case None => worldPos
+        case Some(ob) => world.localToWorld(ob)
+      }
 
       val kb = KB.empty[Rdf]
       val kbRes = kb.point(URI(uri))
 
       kbRes map { res =>
         res match {
-          case Image => {
-            val pos = world.camera.position.clone().add(new Vector3(0, 0, -3))//, vector.sub(camera.position).normalize()
-            world.addImage(pos, uri)
-          }
 
-          case LDPointedGraph(pg) => {
+          case Image => world.addImage(newPos.clone().add(new Vector3(0, 0, 1)), uri)
+
+          case LDPointedGraph(pg) =>
             val triples = KB.cbd(pg)
             if (!triples.isEmpty) {
-              worldPos.z = worldPos.z - 15.0
-              addTripleMesh(worldPos, triples)
-              world.tweenTo(worldPos.add(new Vector3(0, 0, 5)))
-            }
-          }
+              worldPos.copy(newPos).add(new Vector3(0, 0, -10))
+              val node = new Node(triples, worldPos)
+              node.add(world.scene)
+              val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
+              world.tweenTo(focusPoint)
 
-          case _ => println("Unknown type")
+              start.map { o =>
+                world.addLine(node.head.position, newPos)
+                // Have to cast because material.color is val in facade.
+                val d = o.asInstanceOf[js.Dynamic]
+                d.material.color = new org.denigma.threejs.Color().setHex(0xff88ff)
+              }
+            }
+
+          case _ =>
+            println("Unknown type")
+            start.map { o =>
+              // Have to cast because material.color is val in facade.
+              val d = o.asInstanceOf[js.Dynamic]
+              d.material.color = new org.denigma.threejs.Color().setHex(0x0cc00c)
+            }
         }
       }
 
-      /*for {
-        LDPointedGraph(pg) <- kbRes
-      } {
-        //KB.cbd(pg).foreach(println)
-        val triples = KB.cbd(pg)
-        if (!triples.isEmpty) {
-          worldPos.z = worldPos.z - 15.0
-          println(worldPos.x, worldPos.y, worldPos.z)
-
-          addTripleMesh(worldPos, triples)
-          world.tweenTo(worldPos.add(new Vector3(0, 0, 5)))
-        }
-      }*/
       loaded ::= uri
     }
   }
@@ -160,10 +159,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     world.render()
 
-    load("http://www.w3.org/People/Berners-Lee/card#i")
+    //load("http://www.w3.org/People/Berners-Lee/card#i")
 
   }
-
 
 }
 
