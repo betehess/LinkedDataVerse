@@ -33,7 +33,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   var loaded: List[String] = List()
 
 
-  class Node(val triples: Iterable[Rdf#Triple], val pos: Vector3, isBNode: Boolean) {
+  class Node(val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, isBNode: Boolean) {
 
     println("Adding node with " + triples.size +" triples")
 
@@ -48,7 +48,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
       val columns = 4
 
       var xo = 0d
-      val xo2 = -xgap * (columns / 2) + (xgap / 2)
+      val colm = Math.min(columns, triples.size)
+      val xo2 = -colm - (xgap / 2)
       var yo = 0d
       var boxesAdded = 0
 
@@ -76,7 +77,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
               //worldPos.z -= 9
 
               println("BNODE:", label)
-              val node2 = new Node(t, new Vector3(xo + xo2, yo, -10), true)
+              val node2 = new Node(t, pg, new Vector3(xo + xo2, yo, -10), true)
               node2.add(world.scene)
               head.add(node2.head)
 
@@ -138,7 +139,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
             if (!triples.isEmpty) {
 
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
-              val node = new Node(triples, worldPos, false)
+              val node = new Node(triples, pg, worldPos, false)
               node.add(world.scene)
               val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
               world.tweenTo(focusPoint)

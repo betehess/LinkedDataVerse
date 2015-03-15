@@ -55,7 +55,7 @@ object TextPlane {
     val ctx = canvas.getContext("2d")
     canvas.width = width
     canvas.height = height
-    //ctx.textAlign = "center"
+
     ctx.fillStyle = cssBackColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.font = "12pt Helvetica"
@@ -68,12 +68,12 @@ object TextPlane {
     val canMaterial = new MeshBasicMaterial(js.Dynamic.literal(
       map = texture,
       transparent = true,
-      side = 2 /*THREE.DoubleSied*/
-    ).asInstanceOf[MeshBasicMaterialParameters]);
+      side = 2 /*THREE.DoubleSide*/
+    ).asInstanceOf[MeshBasicMaterialParameters])
 
-    val canGeometry = new BoxGeometry(canvas.width, canvas.height, 10);//, 1);
-    val planeMesh = new Mesh(canGeometry, canMaterial);
-    planeMesh.scale.set(0.01, 0.01, 0.01);
+    val canGeometry = new BoxGeometry(canvas.width, canvas.height, 10)
+    val planeMesh = new Mesh(canGeometry, canMaterial)
+    planeMesh.scale.set(0.01, 0.01, 0.01)
 
     planeMesh
 
