@@ -90,12 +90,12 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     mesh
   }
 
-  def addLine(a: Vector3, b: Vector3) = {
+  def createLine(a: Vector3, b: Vector3) = {
 
     // Derp, scala.js is forcing me to used LineDashed...
     // https://github.com/antonkulaga/scala-js-facades/issues/2
     val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
-      lineWidth = 5,
+      lineWidth = 5, // not working through facade?
       color = new Color().setHex(0x6699dd)
     ).asInstanceOf[LineDashedMaterialParameters])
 
@@ -105,10 +105,24 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
 
     val lines = new Line(lineGeo, lineMaterial)
     lines.name = "lines"
+
+    lines
+
+  }
+
+  def addLine(a: Vector3, b: Vector3) = {
+
+    val lines = createLine(a, b)
     scene.add(lines);
 
     lines
 
+  }
+
+  def createLabel(point: Vector3, msg: String) = {
+    val mesh = TextPlane(msg, "#000000", "#ffffff", 256, 45)
+    mesh.position.copy(point)
+    mesh
   }
 
   WorldHelper.addLights(scene);

@@ -42,8 +42,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
     def add (scene: Scene): Unit = {
 
       // Crappy grid layout
-      val xgap = 3.6
-      val ygap = 1.8
+      val xgap = 4.6
+      val ygap = 2.8
       val columns = 4
 
       var xo = 0d
@@ -59,9 +59,24 @@ class ScalaJSExample[Rdf <: RDF](implicit
               val displayPred = p.toString()
               val displayUri = uriS
 
+              val headPos = world.localToWorld(head)
+              val nodePos = new Vector3(xo, yo, -10)
+
               head.add(world.createAUri(
-                new Vector3(xo, yo, -10),
-                uriS, p.toString + " " + displayUri, "#268C3F", "#000000"))
+                nodePos,
+                uriS, displayUri, "#268C3F", "#000000"))
+
+              head.add(
+                world.createLine(headPos, nodePos)
+              )
+
+              val dir = nodePos.clone().sub(headPos)
+              var len = dir.length()
+              val mid = dir.normalize().multiplyScalar(len * 0.75)
+              val fin = headPos.clone().add(mid)
+              head.add(
+                world.createLabel(fin, displayPred)
+              )
 
               // Crappy grid layout
               xo += xgap
@@ -84,10 +99,10 @@ class ScalaJSExample[Rdf <: RDF](implicit
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
 
                 val predicate = p.toString()
-                val shortForm = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
+                //val shortForm = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
                 head.add(world.createTextBox(
                   new Vector3(xo, yo, -10),
-                  shortForm + lexicalForm.substring(0, 200), "#253759", "#ffffff"))
+                  lexicalForm.substring(0, 200), "#253759", "#ffffff"))
 
                 // Crappy grid layout, again
                 xo += xgap
@@ -124,6 +139,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
           case LDPointedGraph(pg) =>
             val triples = KB.cbd(pg)
             if (!triples.isEmpty) {
+
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
               val node = new Node(triples, worldPos)
               node.add(world.scene)
