@@ -248,7 +248,7 @@ class MainScene(
       width,
       height);
 
-    if (!hits.isEmpty && controls.clicked) {
+    if (!hits.isEmpty && (controls.clicked || controls.rightClicked)) {
 
       val ob = hits.head._1
 
@@ -261,15 +261,18 @@ class MainScene(
           toggleNode(ob)
         }
       } else {
-        var pos = new Vector3()
-        pos.setFromMatrixPosition(ob.matrixWorld)
-        tweenTo(pos)
+        if (!controls.rightClicked) {
+          var pos = new Vector3()
+          pos.setFromMatrixPosition(ob.matrixWorld)
+          tweenTo(pos)
+        }
         selectedItem = hits.head._1
       }
 
     }
 
     controls.clicked = false
+    controls.rightClicked = false
 
     Tween.update()
 

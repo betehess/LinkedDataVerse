@@ -71,6 +71,7 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   var lastMousePos = (0d, 0d)
   var mouseDownAt = 0l
   var clicked = false
+  var rightClicked = false
 
   def autoRotationAngle(): Double =  2 * Math.PI / 60 / 60 * autoRotateSpeed
 
@@ -235,7 +236,22 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   def onMouseUp( event:MouseEvent ):Unit = if(enabled && userRotate){
     state = NavControls.Calm
     if (java.lang.System.currentTimeMillis() - mouseDownAt < 300) {
-      clicked = true
+      val e = event.asInstanceOf[js.Dynamic]
+      if (!js.isUndefined(e.which)) {
+        if (e.which.asInstanceOf[Int] == 3) {
+          rightClicked = true
+        } else {
+          clicked = true
+        }
+      } else if (!js.isUndefined(e.button)) {
+        if (e.button.asInstanceOf[Int] == 2) {
+          rightClicked = true
+        } else {
+          clicked = true
+        }
+      } else {
+        clicked = true
+      }
     }
   }
 
