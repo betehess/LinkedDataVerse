@@ -32,7 +32,7 @@ trait SceneContainer{
 
   protected def initCamera() =
   {
-    val camera = new PerspectiveCamera(50, this.aspectRatio, 1, 1000000)
+    val camera = new PerspectiveCamera(50, this.aspectRatio, 1, 10000)
     camera.position.z = distance
     camera
   }

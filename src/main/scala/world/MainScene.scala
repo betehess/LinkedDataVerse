@@ -22,6 +22,7 @@ class MainScene(
   load: (String, Option[Object3D]) => Unit) extends Container3D {
 
   override def distance = 15
+  camera.position.y = 4
 
   private def randPos() = {
     val dist = 40
@@ -122,9 +123,15 @@ class MainScene(
   }
 
   def createLabel(point: Vector3, msg: String) = {
-    val mesh = TextPlane(msg, "#000000", "#ffffff", 256, 45)
+    val mesh = TextPlane(msg, "#000000", "#ffffff", 290, 45)
     mesh.position.copy(point)
     mesh
+  }
+
+  def toggleNode(ob: Object3D) {
+    ob.traverse((c: Object3D) => if (c != ob) {
+      c.visible = !c.visible
+    })
   }
 
   def addConnector(obj: String, predicate: String, head: Object3D, nodePos: Vector3) = {
@@ -142,7 +149,7 @@ class MainScene(
     val mid = dir.normalize().multiplyScalar(len * 0.75)
     val fin = headPos.clone().add(mid)
     head.add(
-      createLabel(endPos.clone().add(new Vector3(0, -0.3, 1.0)), predicate)
+      createLabel(endPos.clone().add(new Vector3(0, -0.3, 1.5)), predicate)
     )
 
   }
@@ -251,9 +258,7 @@ class MainScene(
           load(sd.userData.url.asInstanceOf[String], Some(ob))
         } else {
           // Toggle the children
-          ob.traverse((c: Object3D) => if (c != ob) {
-            c.visible = !c.visible
-          })
+          toggleNode(ob)
         }
       } else {
         var pos = new Vector3()

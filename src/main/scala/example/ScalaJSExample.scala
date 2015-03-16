@@ -33,13 +33,14 @@ class ScalaJSExample[Rdf <: RDF](implicit
   var loaded: List[String] = List()
 
 
-  class Node(val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, isBNode: Boolean) {
+  class Node(val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, val idx:Int = 0, isBNode: Boolean) {
 
     println("Adding node with " + triples.size + " triples")
 
     val head = world.addASphere(pos, !isBNode)
-    //val scale = if (isBNode) 1 else 0.1
-    //head.scale.set(scale, scale, scale)
+    if (isBNode) {
+      //head.rotation.y = List(45, 25, 25, 45)(idx) * (Math.PI/180)
+    }
 
     def add (scene: Scene): Object3D = {
 
@@ -60,6 +61,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
         case Triple(s, p, o) =>
 
           val nodePos = new Vector3(xo + xo2, yo, -10)
+          val col = (xo / xgap).toInt
 
           o.fold (
             { case URI(uriS) =>
@@ -71,11 +73,12 @@ class ScalaJSExample[Rdf <: RDF](implicit
             },
             { case bnode@BNode(label) =>
               val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              val node2 = new Node(t, pg, nodePos, true)
+              val node2 = new Node(t, pg, nodePos, col, true)
               node2.add(world.scene)
               head.add(node2.head)
 
               world.addConnector(label, p.toString, head, nodePos)
+              world.toggleNode(node2.head)
               println("BNODE:", label)
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
@@ -118,14 +121,20 @@ class ScalaJSExample[Rdf <: RDF](implicit
       kbRes map { res =>
         res match {
 
-          case Image => world.addImage(newPos.clone().add(new Vector3(0, 0, 1)), uri)
+          case Image =>
+            start.map { o =>
+              o.rotation.x += 0.4
+              o.parent.remove(o)
+            }
+            val img = world.addImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
+            img.scale.set(1.5, 1.5, 1.5)
 
           case LDPointedGraph(pg) =>
             val triples = KB.cbd(pg)
             if (!triples.isEmpty) {
 
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
-              val node = new Node(triples, pg, worldPos, false)
+              val node = new Node(triples, pg, worldPos, 0, false)
               node.add(world.scene)
               val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
               world.tweenTo(focusPoint)
