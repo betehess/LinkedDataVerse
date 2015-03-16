@@ -104,11 +104,13 @@ class ScalaJSExample[Rdf <: RDF](implicit
       }
 
       val rows = (yo / ygap).toInt
-
-      println("rose", rows, boxesAdded)
       val bot = head.position.clone().add(new Vector3(0, 0, -5))
       val top = bot.clone().add(new Vector3(0, rows * ygap, 0))
       world.addLine(bot, top)
+
+      if (rows > 0) {
+        world.addLine(bot, head.position.clone())
+      }
 
 
       head

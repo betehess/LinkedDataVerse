@@ -22,7 +22,7 @@ class MainScene(
   load: (String, Option[Object3D]) => Unit) extends Container3D {
 
   override def distance = 15
-  camera.position.y = 4
+  camera.position.y = 6
 
   private def randPos() = {
     val dist = 40
@@ -116,6 +116,7 @@ class MainScene(
   def addLine(a: Vector3, b: Vector3) = {
 
     val lines = createLine(a, b)
+    lines.name = "lines"
     scene.add(lines);
 
     lines
