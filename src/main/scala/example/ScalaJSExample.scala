@@ -35,7 +35,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
   class Node(val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, isBNode: Boolean) {
 
-    println("Adding node with " + triples.size +" triples")
+    println("Adding node with " + triples.size + " triples")
 
     val head = world.addASphere(pos, isBNode)
     head.scale.set(0.75, 0.75, 0.75)

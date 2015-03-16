@@ -23,7 +23,7 @@ object WorldHelper {
     val ambLight = new AmbientLight(0x434343)
     scene.add(ambLight);
 
-    scene.fog = new Fog(0xffffff, 30, 180);
+    scene.fog = new Fog(0x444444, 20, 75);
 
   }
 

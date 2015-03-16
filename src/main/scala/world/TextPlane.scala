@@ -13,7 +13,6 @@ object TextPlane {
 
     val words:List[String] = text.split(" ").toList
       .foldLeft(List():List[String])( (a, b) => {
-        //a ++ (b.split("/").mkString(" / ").split(""))
         if (b.length > 33) {
           a :+ b.take(15) + "..." + b.takeRight(15)
         } else {
@@ -24,6 +23,7 @@ object TextPlane {
 
     var line = ""
     var yo = y
+    var xo = x + 10
 
     Range(0, words.length).map(n =>  {
 
@@ -32,7 +32,7 @@ object TextPlane {
       val testWidth = metrics.width.asInstanceOf[Double]
 
       if (testWidth > maxWidth && n > 0) {
-        context.fillText(line, x, yo);
+        context.fillText(line, xo, yo);
         line = words(n) + " ";
         yo = yo + lineHeight;
       } else {
@@ -40,7 +40,7 @@ object TextPlane {
       }
     })
 
-    context.fillText(line, x, yo);
+    context.fillText(line, xo, yo);
 
   }
 
@@ -48,7 +48,7 @@ object TextPlane {
     text: String,
     cssBackColor: String = "#eeeeee",
     cssForeColor: String = "#000000",
-    width: Int = 256,
+    width: Int = 300,
     height: Int = 128): Mesh = {
 
     val canvas = document.createElement("canvas").asInstanceOf[html.Canvas]

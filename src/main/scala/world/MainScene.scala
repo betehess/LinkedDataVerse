@@ -96,6 +96,8 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     // https://github.com/antonkulaga/scala-js-facades/issues/2
     val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
       lineWidth = 5, // not working through facade?
+      opacity = 0.45,
+      transparent = true,
       color = new Color().setHex(0x6699dd)
     ).asInstanceOf[LineDashedMaterialParameters])
 
@@ -140,9 +142,8 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     val mid = dir.normalize().multiplyScalar(len * 0.75)
     val fin = headPos.clone().add(mid)
     head.add(
-      createLabel(endPos.clone().add(new Vector3(0, 0, 2.5)), predicate)
+      createLabel(endPos.clone().add(new Vector3(0, -0.3, 2.5)), predicate)
     )
-
 
   }
 
