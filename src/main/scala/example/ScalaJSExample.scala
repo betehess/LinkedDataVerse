@@ -33,9 +33,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
   var loaded: List[String] = List()
 
 
-  class Node(val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, val idx:Int = 0, isBNode: Boolean) {
-
-    println("Adding node with " + triples.size + " triples")
+  class Node(subject: RDF#Node, val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, val idx:Int = 0, isBNode: Boolean) {
 
     val head = world.addASphere(pos, !isBNode)
     if (isBNode) {
@@ -55,7 +53,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
       var yo = 0d
       var boxesAdded = 0
 
-      triples.foreach {
+      val t = triples.filter { case Triple(s, _, _) => s == subject }
+
+      t.foreach {
 
         // Testing various types
         case Triple(s, p, o) =>
@@ -68,25 +68,22 @@ class ScalaJSExample[Rdf <: RDF](implicit
               val linkMesh = world.createAUri(nodePos, uriS, uriS, "#268C3F", "#000000")
               head.add(linkMesh)
               world.addConnector(uriS, p.toString(), head, nodePos)
-              uriS
               boxesAdded += 1
-              println("URI:", uriS)
+              //println("URI:", uriS)
             },
             { case bnode@BNode(label) =>
               val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              val node2 = new Node(t, pg, nodePos, col, true)
+              val node2 = new Node(bnode, t, pg, nodePos, col, true)
               node2.add(world.scene)
               head.add(node2.head)
 
+              // Line connectos
               world.addConnector(label, p.toString, head, nodePos)
-              //world.toggleNode(node2.head)
-
               val bnodeConnector = world.createLine(new Vector3(0, 0, 0), new Vector3(0, 0, -5))
-              //bnodeConnector.visible = false
 
               node2.head.add(bnodeConnector)
               boxesAdded += 1
-              println("BNODE:", label)
+              //println("BNODE:", label)
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
               val predicate = p.toString()
@@ -96,7 +93,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
               world.addConnector(lexicalForm, p.toString, head, nodePos)
               boxesAdded += 1
-              println("Literal", lexicalForm)
+              //println("Literal", lexicalForm)
             }
           )
 
@@ -136,6 +133,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
       val kbRes = kb.point(URI(uri))
 
       kbRes map { res =>
+
+        println(res, "!")
+
         res match {
 
           case Image =>
@@ -151,7 +151,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
             if (!triples.isEmpty) {
 
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
-              val node = new Node(triples, pg, worldPos, 0, false)
+              val node = new Node(URI(uri), triples, pg, worldPos, 0, false)
               node.add(world.scene)
               val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
               world.tweenTo(focusPoint)

@@ -156,9 +156,18 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
 
     mouseDownAt = java.lang.System.currentTimeMillis()
 
+    val e = event.asInstanceOf[js.Dynamic]
+    val button = if (!js.isUndefined(e.which)) {
+      e.which.asInstanceOf[Int] - 1
+    } else {
+      event.button
+    }
+
+    val finalButton = if (event.shiftKey) 2 else button
+
     //event.preventDefault()
     if(state == NavControls.Calm) {
-      state = event.button match
+      state = finalButton match
       {
         case 0=>NavControls.Rotate
         case 1=>NavControls.Zoom
