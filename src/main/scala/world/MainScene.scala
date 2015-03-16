@@ -116,8 +116,7 @@ class MainScene(
   def addLine(a: Vector3, b: Vector3) = {
 
     val lines = createLine(a, b)
-    lines.name = "lines"
-    scene.add(lines);
+    scene.add(lines)
 
     lines
 
