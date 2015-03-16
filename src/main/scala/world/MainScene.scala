@@ -37,7 +37,7 @@ class MainScene(
     pos.setFromMatrixPosition(ob.matrixWorld)
   }
 
-def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: String) = {
+  def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: String) = {
     val mesh = TextPlane(text, backColor, foreColor)
     mesh.position.copy(pos)
     mesh
@@ -95,11 +95,13 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
     // Derp, scala.js is forcing me to used LineDashed...
     // https://github.com/antonkulaga/scala-js-facades/issues/2
     val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
-      lineWidth = 5, // not working through facade?
+      linewidth = 5, // not working through facade?
       opacity = 0.45,
       transparent = true,
-      color = new Color().setHex(0x6699dd)
+      color = new Color().setHex(0x8899aa)
     ).asInstanceOf[LineDashedMaterialParameters])
+
+    println(lineMaterial.linewidth)
 
     val lineGeo = new Geometry()
     lineGeo.vertices.push(a.clone())
@@ -161,14 +163,16 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
   ).asInstanceOf[MeshLambertMaterialParameters])
 
 
-  val img = ImgUrMesh("http://www.w3.org/DesignIssues/diagrams/lod/597992118v2_350x350_Back.jpg")
-  img.position.set(2, 2, -5)
-  val imgd = img.asInstanceOf[js.Dynamic]
+  //val img = ImgUrMesh("http://www.w3.org/DesignIssues/diagrams/lod/597992118v2_350x350_Back.jpg")
+  //img.position.set(2, 2, -5)
+  val initObj = TextPlane(initialUri, "#eeeeee", "#333333", 200, 45)
+  initObj.position.set(0, 0, 0)
+  val initObjD = initObj.asInstanceOf[js.Dynamic]
   //imgd.userData.url = "http://www.w3.org/People/Berners-Lee/card#i"
-  imgd.userData.url = initialUri
-  scene.add(img)
+  initObjD.userData.url = initialUri
+  scene.add(initObj)
 
-  tweenTo(img.position)
+  tweenTo(initObj.position)
 
   val projector = new Projector()
   val raycaster = new Raycaster()
