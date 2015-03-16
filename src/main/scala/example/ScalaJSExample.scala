@@ -54,61 +54,46 @@ class ScalaJSExample[Rdf <: RDF](implicit
       var boxesAdded = 0
 
       triples.foreach {
+
         // Testing various types
         case Triple(s, p, o) =>
+
+          val nodePos = new Vector3(xo + xo2, yo, -10)
+
           o.fold (
             { case URI(uriS) =>
-
-              val nodePos = new Vector3(xo + xo2, yo, -10)
-              head.add(world.createAUri(nodePos, uriS, uriS, "#268C3F", "#000000"))
+              val linkMesh = world.createAUri(nodePos, uriS, uriS, "#268C3F", "#000000")
+              head.add(linkMesh)
               world.addConnector(uriS, p.toString(), head, nodePos)
-
-              // Crappy grid layout
-              xo += xgap
-              if (xo >= xgap * columns) {
-                xo = 0
-                yo += ygap
-              }
-              println("URI:", uriS)
               uriS
+              println("URI:", uriS)
             },
             { case bnode@BNode(label) =>
               val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              //worldPos.z -= 9
-
-              println("BNODE:", label)
-              val node2 = new Node(t, pg, new Vector3(xo + xo2, yo, -10), true)
+              val node2 = new Node(t, pg, nodePos, true)
               node2.add(world.scene)
               head.add(node2.head)
 
-              world.addConnector(label, p.toString, head, new Vector3(xo + xo2, yo, -10))
-
-
-              xo += xgap
-              if (xo >= xgap * columns) {
-                xo = 0
-                yo += ygap
-              }
+              world.addConnector(label, p.toString, head, nodePos)
+              println("BNODE:", label)
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
+              val predicate = p.toString()
+              head.add(world.createTextBox(
+                new Vector3(xo + xo2, yo, -10),
+                lexicalForm.substring(0, 200), "#253759", "#ffffff"))
 
-                val predicate = p.toString()
-                //val shortForm = if (predicate.contains("#")) predicate.split("#").last + ": " else predicate.split("/").last + ": "
-                head.add(world.createTextBox(
-                  new Vector3(xo + xo2, yo, -10),
-                  lexicalForm.substring(0, 200), "#253759", "#ffffff"))
-
-                world.addConnector(lexicalForm, p.toString, head, new Vector3(xo + xo2, yo, -10))
-
-                // Crappy grid layout, again
-                xo += xgap
-                if (xo >= xgap * columns) {
-                  xo = 0
-                  yo += ygap
-                }
-                println("Literal", lexicalForm)
+              world.addConnector(lexicalForm, p.toString, head, nodePos)
+              println("Literal", lexicalForm)
             }
           )
+
+        // Crappy grid layout
+        xo += xgap
+        if (xo >= xgap * columns) {
+          xo = 0
+          yo += ygap
+        }
       }
 
       head
@@ -164,6 +149,10 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
       loaded ::= uri
     }
+  }
+
+  def repoint (uri: String, pg: PointedGraph[Rdf]):Unit = {
+
   }
 
   def main(): Unit = {

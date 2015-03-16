@@ -128,14 +128,20 @@ def createTextBox(pos: Vector3, text: String, backColor: String, foreColor: Stri
   def addConnector(obj: String, predicate: String, head: Object3D, nodePos: Vector3) = {
 
     val headPos = localToWorld(head)
+    val endPos = nodePos.clone()
+
+    nodePos.add(new Vector3(0, 0, 5))
 
     head.add(createLine(headPos, nodePos))
+    head.add(createLine(nodePos, endPos))
 
     val dir = nodePos.clone().sub(headPos)
     var len = dir.length()
     val mid = dir.normalize().multiplyScalar(len * 0.75)
     val fin = headPos.clone().add(mid)
-    head.add(createLabel(fin, predicate))
+    head.add(
+      createLabel(endPos.clone().add(new Vector3(0, 0, 2.5)), predicate)
+    )
 
 
   }
