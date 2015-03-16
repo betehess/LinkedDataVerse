@@ -13,8 +13,8 @@ object TextPlane {
 
     val words:List[String] = text.split(" ").toList
       .foldLeft(List():List[String])( (a, b) => {
-        if (b.length > 33) {
-          a :+ b.take(15) + "..." + b.takeRight(15)
+        if (b.length > 35) {
+          a :+ b.take(16) + "..." + b.takeRight(16)
         } else {
           a :+ b
         }

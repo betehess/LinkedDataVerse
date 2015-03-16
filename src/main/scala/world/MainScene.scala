@@ -95,13 +95,11 @@ class MainScene(
     // Derp, scala.js is forcing me to used LineDashed...
     // https://github.com/antonkulaga/scala-js-facades/issues/2
     val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
-      linewidth = 5, // not working through facade?
+      linewidth = 3,
       opacity = 0.45,
       transparent = true,
       color = new Color().setHex(0x8899aa)
     ).asInstanceOf[LineDashedMaterialParameters])
-
-    println(lineMaterial.linewidth)
 
     val lineGeo = new Geometry()
     lineGeo.vertices.push(a.clone())
@@ -144,7 +142,7 @@ class MainScene(
     val mid = dir.normalize().multiplyScalar(len * 0.75)
     val fin = headPos.clone().add(mid)
     head.add(
-      createLabel(endPos.clone().add(new Vector3(0, -0.3, 2.5)), predicate)
+      createLabel(endPos.clone().add(new Vector3(0, -0.3, 1.0)), predicate)
     )
 
   }
@@ -152,14 +150,14 @@ class MainScene(
   WorldHelper.addLights(scene);
 
   val boxGeom = new BoxGeometry(1, 1, 1)
-  val sphereGeom = new SphereGeometry(1, 10, 10)
+  val sphereGeom = new SphereGeometry(0.4, 20, 20)
 
   val plainMaterial = new MeshLambertMaterial(js.Dynamic.literal(
     color = new Color().setHex(0xBF8415)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
   val offMaterial = new MeshLambertMaterial(js.Dynamic.literal(
-    color = new Color().setHex(0x15BF84)
+    color = new Color().setHex(0xB4BFB4)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
 

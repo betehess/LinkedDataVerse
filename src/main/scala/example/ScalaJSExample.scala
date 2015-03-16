@@ -37,8 +37,9 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
     println("Adding node with " + triples.size + " triples")
 
-    val head = world.addASphere(pos, isBNode)
-    head.scale.set(0.75, 0.75, 0.75)
+    val head = world.addASphere(pos, !isBNode)
+    //val scale = if (isBNode) 1 else 0.1
+    //head.scale.set(scale, scale, scale)
 
     def add (scene: Scene): Object3D = {
 
