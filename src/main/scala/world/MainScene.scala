@@ -262,8 +262,7 @@ class MainScene(
         }
       } else {
         if (!controls.rightClicked) {
-          var pos = new Vector3()
-          pos.setFromMatrixPosition(ob.matrixWorld)
+          var pos = new Vector3().setFromMatrixPosition(ob.matrixWorld)
           tweenTo(pos)
         }
         selectedItem = hits.head._1
