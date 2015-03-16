@@ -80,6 +80,11 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
               world.addConnector(label, p.toString, head, nodePos)
               world.toggleNode(node2.head)
+
+              val bnodeConnector = world.createLine(new Vector3(0, 0, 0), new Vector3(0, 0, -5))
+              bnodeConnector.visible = false
+
+              node2.head.add(bnodeConnector)
               boxesAdded += 1
               println("BNODE:", label)
             },
