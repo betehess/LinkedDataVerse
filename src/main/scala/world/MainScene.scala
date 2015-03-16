@@ -141,8 +141,8 @@ class MainScene(
 
     nodePos.add(new Vector3(0, 0, 5))
 
-    head.add(createLine(headPos, nodePos))
     head.add(createLine(nodePos, endPos))
+    head.add(createLine(nodePos, new Vector3(headPos.x, nodePos.y, nodePos.z)))
 
     val dir = nodePos.clone().sub(headPos)
     var len = dir.length()

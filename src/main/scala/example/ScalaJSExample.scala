@@ -69,6 +69,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
               head.add(linkMesh)
               world.addConnector(uriS, p.toString(), head, nodePos)
               uriS
+              boxesAdded += 1
               println("URI:", uriS)
             },
             { case bnode@BNode(label) =>
@@ -79,6 +80,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
               world.addConnector(label, p.toString, head, nodePos)
               world.toggleNode(node2.head)
+              boxesAdded += 1
               println("BNODE:", label)
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
@@ -88,6 +90,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
                 lexicalForm.substring(0, 200), "#253759", "#ffffff"))
 
               world.addConnector(lexicalForm, p.toString, head, nodePos)
+              boxesAdded += 1
               println("Literal", lexicalForm)
             }
           )
@@ -99,6 +102,14 @@ class ScalaJSExample[Rdf <: RDF](implicit
           yo += ygap
         }
       }
+
+      val rows = (yo / ygap).toInt
+
+      println("rose", rows, boxesAdded)
+      val bot = head.position.clone().add(new Vector3(0, 0, -5))
+      val top = bot.clone().add(new Vector3(0, rows * ygap, 0))
+      world.addLine(bot, top)
+
 
       head
     }
