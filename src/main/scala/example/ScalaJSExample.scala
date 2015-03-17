@@ -140,11 +140,14 @@ class ScalaJSExample[Rdf <: RDF](implicit
         res match {
 
           case Image =>
+            val img = world.createImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
             start.map { o =>
-              o.rotation.x += 0.4
-              o.parent.remove(o)
-            }
-            val img = world.addImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
+              val parent = o.parent
+              img.position.copy(o.position)
+              parent.add(img)
+              parent.remove(o)
+            }.getOrElse(world.scene.add(img))
+            //start.map(_.add(img))
             img.scale.set(2, 2, 2)
 
           case LDPointedGraph(pg) =>
