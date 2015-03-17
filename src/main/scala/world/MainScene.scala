@@ -24,6 +24,8 @@ class MainScene(
   override def distance = 15
   camera.position.y = 6
 
+  var heads: List[Object3D] = List()
+
   private def randPos() = {
     val dist = 40
     val half = dist / 2
@@ -230,8 +232,6 @@ class MainScene(
       .onComplete(() => {
         controls.scale = 1.0
         camera.position.copy(endPos)
-
-
       }:Unit)
       .start()
   }
@@ -272,6 +272,11 @@ class MainScene(
 
     controls.clicked = false
     controls.rightClicked = false
+
+    if (controls.headPointer > 0 && controls.headPointer <= heads.size) {
+      tweenTo(heads(controls.headPointer - 1).position)
+      controls.headPointer = 0
+    }
 
     Tween.update()
 

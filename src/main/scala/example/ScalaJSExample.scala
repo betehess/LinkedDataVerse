@@ -29,6 +29,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
   var worldPos = new Vector3(0, 0, -10)
 
+
   // TEMP: Just testing adding some things from the data.
   var loaded: List[String] = List()
 
@@ -38,6 +39,8 @@ class ScalaJSExample[Rdf <: RDF](implicit
     val head = world.addASphere(pos, !isBNode)
     if (isBNode) {
       //head.rotation.y = List(45, 25, 25, 45)(idx) * (Math.PI/180)
+    } else {
+      world.heads = world.heads :+ head
     }
 
     def add (scene: Scene): Object3D = {
@@ -45,15 +48,16 @@ class ScalaJSExample[Rdf <: RDF](implicit
       // Crappy grid layout
       val xgap = 4.6
       val ygap = 2.8
-      val columns = 4
+
+      val t = triples.filter { case Triple(s, _, _) => s == subject }
+
+      val columns = if (t.size <= 12) 4 else 6
 
       var xo = 0d
       val colm = Math.min(columns, triples.size)
       val xo2 = -colm - (xgap / 2)
       var yo = 0d
       var boxesAdded = 0
-
-      val t = triples.filter { case Triple(s, _, _) => s == subject }
 
       t.foreach {
 
@@ -72,12 +76,6 @@ class ScalaJSExample[Rdf <: RDF](implicit
               //println("URI:", uriS)
             },
             { case bnode@BNode(label) =>
-              val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              val t2 = triples.filter { case Triple(_, _, o) => o == bnode }
-              if (p.toString.contains("address")) {
-                println(t2, t2.size)
-              }
-
               val node2 = new Node(bnode, triples, pg, nodePos, col, true)
               node2.add(world.scene)
               head.add(node2.head)
@@ -147,7 +145,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
               o.parent.remove(o)
             }
             val img = world.addImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
-            img.scale.set(1.5, 1.5, 1.5)
+            img.scale.set(2, 2, 2)
 
           case LDPointedGraph(pg) =>
             val triples = KB.cbd(pg)

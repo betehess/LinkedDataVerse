@@ -55,8 +55,6 @@ class PointerLockControls(camera:Camera, element:HTMLElement) extends CameraCont
       val movementX:Double = ed.mozMovementX.asInstanceOf[Double]
       val movementY:Double = ed.mozMovementY.asInstanceOf[Double]
 
-      println(movementX)
-
       yawObject.rotation.y -= movementX * moveSensitivity;
       pitchObject.rotation.x -= movementY * moveSensitivity;
 

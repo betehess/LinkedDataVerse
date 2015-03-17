@@ -30,7 +30,7 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   var userRotateSpeed = 1.0
 
   var userPan = true
-  var userPanSpeed = 0.15
+  var userPanSpeed = 0.23
 
   var autoRotate = false
   var autoRotateSpeed = 2.0 // 30 seconds per round when fps is 60
@@ -41,6 +41,8 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   var minDistance = 0
   var maxDistance =  Double.MaxValue //infinity?
 
+  var headPointer = 0 //tmp: hack to tween to node
+
   object Keys {
 
     val LEFT = 37
@@ -50,6 +52,14 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
     val ROTATE = 65
     val ZOOM = 83
     val PAN = 68
+
+    var left = false
+    var right = false
+    var up = false
+    var down = false
+    var in = false
+    var out = false
+
   }
 
   protected var EPS = 0.000001
@@ -148,6 +158,14 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
       lastPosition.copy( camera.position )
 
     }
+
+    if (Keys.left == true) pan(new Vector3(-1, 0, 0))
+    if (Keys.up == true) pan(new Vector3(0, 1, 0))
+    if (Keys.right == true) pan(new Vector3(1, 0, 0))
+    if (Keys.down == true) pan(new Vector3(0, -1, 0))
+    if (Keys.in == true) pan(new Vector3(0, 0, -1)) //newzoomIn()
+    if (Keys.out == true) pan(new Vector3(0, 0, 1)) //zoomOut()
+
 
   }
 
@@ -265,16 +283,36 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
   }
 
   def onKeyDown(e: KeyboardEvent): Unit = {
-    val vec = e.keyCode match {
-      case 65 => new Vector3(1, 0, 0)
-      case 87 => new Vector3(0, -1, 0)
-      case 68 => new Vector3(-1, 0, 0)
-      case 83 => new Vector3(0, 1, 0)
-      case _ => new Vector3(0, 0, 0)
+    e.keyCode match {
+      case 65 => Keys.left = true //new Vector3(-1, 0, 0)
+      case 87 => Keys.up = true //new Vector3(0, 1, 0)
+      case 68 => Keys.right = true //new Vector3(1, 0, 0)
+      case 83 => Keys.down = true //new Vector3(0, -1, 0)
+      case 81 => Keys.in = true //new Vector3(0, -1, 0)
+      case 69 => Keys.out = true //new Vector3(0, -1, 0)
+      case _ => {}
     }
-    pan(vec)
+    //pan(vec)
+
+    headPointer = e.keyCode match {
+      case 49 => 1
+      case 50 => 2
+      case 51 => 3
+      case _ => 0
+    }
+
   }
-  def onKeyUp(e: KeyboardEvent): Unit = {}
+  def onKeyUp(e: KeyboardEvent): Unit = {
+    e.keyCode match {
+      case 65 => Keys.left = false //new Vector3(-1, 0, 0)
+      case 87 => Keys.up = false //new Vector3(0, 1, 0)
+      case 68 => Keys.right = false //new Vector3(1, 0, 0)
+      case 83 => Keys.down = false //new Vector3(0, -1, 0)
+      case 81 => Keys.in = false //new Vector3(0, -1, 0)
+      case 69 => Keys.out = false //new Vector3(0, -1, 0)
+      case _ => {}
+    }
+  }
 
   def onMouseWheel(event:dom.MouseEvent) = if(enabled && userZoom) {
 
