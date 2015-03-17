@@ -239,13 +239,12 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
         zoomStart.copy( zoomEnd )
       case NavControls.Pan=>
         val evd = event.asInstanceOf[js.Dynamic]
-        val movementX:Double = evd.movementX.asInstanceOf[Double]
-        val movementY:Double = evd.movementY.asInstanceOf[Double]
+        val mx = if (js.isUndefined(evd.movementX)) evd.mozMovementX else evd.movementX
+        val my = if (js.isUndefined(evd.movementY)) evd.mozMovementY else evd.movementY
+
+        val movementX:Double = mx.asInstanceOf[Double]
+        val movementY:Double = my.asInstanceOf[Double]
         this.pan(new Vector3(-movementX,movementY,0))
-      //TODO: test how it works
-      //var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-      //var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-      //this.pan( new Vector3( - movementX, movementY, 0 ) )
       case _=> //do nothing
     }
   }

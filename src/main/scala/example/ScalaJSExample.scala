@@ -167,7 +167,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
     loaded = List()
     worldPos.z -= 15
     world.heads = List()
-    val uri = dom.window.prompt("Base URI:", "http://www.w3.org/People/Berners-Lee/card#i")
+    val uri = dom.window.prompt("Explore!", "http://www.w3.org/People/Berners-Lee/card#i")
     if (uri != null) {
       load(uri, None)
     }
