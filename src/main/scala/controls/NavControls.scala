@@ -298,6 +298,8 @@ class NavControls(camera:Camera, element:HTMLElement) extends CameraControls {
       case 49 => 1
       case 50 => 2
       case 51 => 3
+      case 52 => 4
+      case 53 => 5
       case _ => 0
     }
 

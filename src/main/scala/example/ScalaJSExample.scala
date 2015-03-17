@@ -123,7 +123,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
   def load(uri: String, start: Option[Object3D]):Unit = {
 
-    println("Loading:", uri, start.isEmpty)
+    println("Loading:", uri)
 
     if (!loaded.contains(uri)) {
 
@@ -141,14 +141,13 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
           case Image =>
             val img = world.createImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
+            img.scale.set(2, 2, 2)
             start.map { o =>
               val parent = o.parent
               img.position.copy(o.position)
               parent.add(img)
               parent.remove(o)
             }.getOrElse(world.scene.add(img))
-            //start.map(_.add(img))
-            img.scale.set(2, 2, 2)
 
           case LDPointedGraph(pg) =>
             val triples = KB.cbd(pg)
