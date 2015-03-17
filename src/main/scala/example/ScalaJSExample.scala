@@ -27,80 +27,64 @@ class ScalaJSExample[Rdf <: RDF](implicit
   lazy val el:HTMLElement = dom.document.getElementById("board").asInstanceOf[HTMLElement]
   lazy val world = new MainScene("http://bertails.org/alex#me", el, 640, 480, load _)
 
-  var worldPos = new Vector3(0, 0, -10)
+  class Node(subject: RDF#Node, val allTriples: Iterable[Rdf#Triple], val pos: Vector3, isBNode: Boolean) {
 
+    // tmp: Crappy grid layout
+    val xgap = 4.6
+    val ygap = 2.8
 
-  // TEMP: Just testing adding some things from the data.
-  var loaded: List[String] = List()
+    val head = world.addSphere(pos, !isBNode)
 
-
-  class Node(subject: RDF#Node, val triples: Iterable[Rdf#Triple], val pg: PointedGraph[Rdf], val pos: Vector3, val idx:Int = 0, isBNode: Boolean) {
-
-    val head = world.addASphere(pos, !isBNode)
-    if (isBNode) {
-      //head.rotation.y = List(45, 25, 25, 45)(idx) * (Math.PI/180)
-    } else {
+    // tmp: Tracking heads for shortcut keys
+    if (!isBNode) {
       world.heads = world.heads :+ head
     }
 
+    val triples = allTriples.filter { case Triple(s, _, _) => s == subject }
+
     def add (scene: Scene): Object3D = {
 
-      // Crappy grid layout
-      val xgap = 4.6
-      val ygap = 2.8
-
-      val t = triples.filter { case Triple(s, _, _) => s == subject }
-
-      val columns = if (t.size <= 12) 4 else 6
-
       var xo = 0d
-      val colm = Math.min(columns, triples.size)
-      val xo2 = -colm - (xgap / 2)
       var yo = 0d
-      var boxesAdded = 0
+      val columns = if (triples.size <= 12) 4 else 6
+      val xo2 = - Math.min(columns, triples.size) - (xgap / 2)
 
-      t.foreach {
+      triples.foreach {
 
         // Testing various types
         case Triple(s, p, o) =>
 
           val nodePos = new Vector3(xo + xo2, yo, -10)
-          val col = (xo / xgap).toInt
+          val predicate = p.toString
 
-          o.fold (
+          val (subject, mesh) = o.fold (
             { case URI(uriS) =>
               val linkMesh = world.createAUri(nodePos, uriS, uriS, "#268C3F", "#000000")
-              head.add(linkMesh)
-              world.addConnector(uriS, p.toString(), head, nodePos)
-              boxesAdded += 1
-              //println("URI:", uriS)
+              (uriS, linkMesh)
             },
             { case bnode@BNode(label) =>
-              val node2 = new Node(bnode, triples, pg, nodePos, col, true)
-              node2.add(world.scene)
-              head.add(node2.head)
-
-              // Line connectos
-              world.addConnector(label, p.toString, head, nodePos)
+              val nextNode = new Node(bnode, allTriples, nodePos, true)
+              nextNode.add(world.scene)
               val bnodeConnector = world.createLine(new Vector3(0, 0, 0), new Vector3(0, 0, -5))
+              nextNode.head.add(bnodeConnector)
 
-              node2.head.add(bnodeConnector)
-              boxesAdded += 1
-              //println("BNODE:", label)
+              (label, nextNode.head)
             },
             { case Literal(lexicalForm, URI(uriType), langOpt) =>
-              val predicate = p.toString()
-              head.add(world.createTextBox(
-                new Vector3(xo + xo2, yo, -10),
-                lexicalForm.substring(0, 200), "#253759", "#ffffff"))
 
-              world.addConnector(lexicalForm, p.toString, head, nodePos)
-              boxesAdded += 1
-              //println("Literal", lexicalForm)
+              val textBox = world.createTextBox(
+                  new Vector3(xo + xo2, yo, -10),
+                  lexicalForm.substring(0, 200),
+                  "#253759",
+                  "#fff00f")
+              (lexicalForm, textBox)
             }
           )
 
-        // Crappy grid layout
+        head.add(mesh)
+        world.addConnector(subject, predicate, head, nodePos)
+
+        // tmp: Crappy grid layout
         xo += xgap
         if (xo >= xgap * columns) {
           xo = 0
@@ -108,24 +92,23 @@ class ScalaJSExample[Rdf <: RDF](implicit
         }
       }
 
-      val rows = (yo / ygap).toInt
-      val bot = new Vector3(0, 0, -5)
-      val top = new Vector3(0, rows * ygap, -5)
-      head.add(world.createLine(bot, top))
-
-      if (rows > 0) {
-        head.add(world.createLine(bot, new Vector3(0, 0, 0)))
-      }
+      // Connect to head
+      val bottom = new Vector3(0, 0, -5)
+      head.add(world.createLine(bottom, new Vector3(0, yo, -5)))
+      head.add(world.createLine(bottom, new Vector3(0, 0, 0)))
 
       head
     }
   }
 
+  var loaded: List[String] = List() // tmp: don't double load
+  var worldPos = new Vector3(0, 0, -10) // tmp: move forward as loading
+
   def load(uri: String, start: Option[Object3D]):Unit = {
 
-    println("Loading:", uri)
-
     if (!loaded.contains(uri)) {
+
+      println("Loading:", uri)
 
       val newPos = start match {
         case None => worldPos
@@ -141,7 +124,7 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
           case Image =>
             val img = world.createImage(newPos.clone().add(new Vector3(0, 0, 0)), uri)
-            img.scale.set(2, 2, 2)
+            img.scale.set(3, 3, 3)
             start.map { o =>
               val parent = o.parent
               img.position.copy(o.position)
@@ -153,36 +136,30 @@ class ScalaJSExample[Rdf <: RDF](implicit
             val triples = KB.cbd(pg)
             if (!triples.isEmpty) {
 
+              // Move forward
               worldPos.copy(newPos).add(new Vector3(0, 0, -10))
-              val node = new Node(URI(uri), triples, pg, worldPos, 0, false)
+              val node = new Node(URI(uri), triples, worldPos, false)
               node.add(world.scene)
-              val focusPoint = node.head.position.clone().add(new Vector3(0, 0, 3))
-              world.tweenTo(focusPoint)
+
+              // Tween to new head
+              world.tweenTo(node.head.position.clone().add(new Vector3(0, 0, 3)))
 
               start.map { o =>
                 world.addLine(node.head.position, newPos)
-                // Have to cast because material.color is val in facade.
-                val d = o.asInstanceOf[js.Dynamic]
-                d.material.color = new org.denigma.threejs.Color().setHex(0xff88ff)
+                world.colorObject(o, 0xff88ff)
               }
             }
 
           case _ =>
             println("Unknown type")
             start.map { o =>
-              // Have to cast because material.color is val in facade.
-              val d = o.asInstanceOf[js.Dynamic]
-              d.material.color = new org.denigma.threejs.Color().setHex(0x0cc00c)
+              world.colorObject(o, 0x0cc00c)
             }
         }
       }
 
       loaded ::= uri
     }
-  }
-
-  def repoint (uri: String, pg: PointedGraph[Rdf]):Unit = {
-
   }
 
   def main(): Unit = {

@@ -22,7 +22,6 @@ class MainScene(
   load: (String, Option[Object3D]) => Unit) extends Container3D {
 
   override def distance = 15
-  camera.position.y = 6
 
   var heads: List[Object3D] = List()
 
@@ -61,7 +60,7 @@ class MainScene(
     uriText
   }
 
-  def addAUri(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
+  def addUri(pos: Vector3, url: String, text: String, backColor: String, foreColor: String) = {
     val uriText = createAUri(pos, url, text, backColor, foreColor)
     scene.add(uriText)
     uriText
@@ -79,14 +78,14 @@ class MainScene(
     img
   }
 
-  def addABox(pos: Vector3 = randPos()) = {
+  def addBox(pos: Vector3 = randPos()) = {
     val mesh = new Mesh(boxGeom, plainMaterial)
     mesh.position.copy(pos)
     scene.add(mesh)
     mesh
   }
 
-  def addASphere(pos: Vector3 = randPos(), useOffColor: Boolean = false) = {
+  def addSphere(pos: Vector3 = randPos(), useOffColor: Boolean = false) = {
     val mesh = new Mesh(sphereGeom, if (useOffColor) offMaterial else plainMaterial)
     mesh.position.copy(pos)
     scene.add(mesh)
@@ -94,7 +93,6 @@ class MainScene(
   }
 
   def createLine(a: Vector3, b: Vector3) = {
-
     // Derp, scala.js is forcing me to used LineDashed...
     // https://github.com/antonkulaga/scala-js-facades/issues/2
     val lineMaterial = new LineDashedMaterial(js.Dynamic.literal(
@@ -112,16 +110,12 @@ class MainScene(
     lines.name = "lines"
 
     lines
-
   }
 
   def addLine(a: Vector3, b: Vector3) = {
-
     val lines = createLine(a, b)
     scene.add(lines)
-
     lines
-
   }
 
   def createLabel(point: Vector3, msg: String) = {
@@ -134,6 +128,12 @@ class MainScene(
     ob.traverse((c: Object3D) => if (c != ob) {
       c.visible = !c.visible
     })
+  }
+
+  def colorObject(ob: Object3D, color: Int) {
+    // Have to cast because material.color is val in facade.
+    val d = ob.asInstanceOf[js.Dynamic]
+    d.material.color = new org.denigma.threejs.Color().setHex(color)
   }
 
   def addConnector(obj: String, predicate: String, head: Object3D, nodePos: Vector3) = {
@@ -150,6 +150,7 @@ class MainScene(
     var len = dir.length()
     val mid = dir.normalize().multiplyScalar(len * 0.75)
     val fin = headPos.clone().add(mid)
+
     head.add(
       createLabel(endPos.clone().add(new Vector3(0, -0.3, 1.5)), predicate)
     )
@@ -169,17 +170,11 @@ class MainScene(
     color = new Color().setHex(0xB4BFB4)
   ).asInstanceOf[MeshLambertMaterialParameters])
 
-
-  //val img = ImgUrMesh("http://www.w3.org/DesignIssues/diagrams/lod/597992118v2_350x350_Back.jpg")
-  //img.position.set(2, 2, -5)
   val initObj = TextPlane(initialUri, "#eeeeee", "#333333", 200, 45)
   initObj.position.set(0, 0, 0)
   val initObjD = initObj.asInstanceOf[js.Dynamic]
-  //imgd.userData.url = "http://www.w3.org/People/Berners-Lee/card#i"
   initObjD.userData.url = initialUri
   scene.add(initObj)
-
-  tweenTo(initObj.position)
 
   val projector = new Projector()
   val raycaster = new Raycaster()
@@ -236,7 +231,7 @@ class MainScene(
       .start()
   }
 
-  var selectedItem = new Object3D() // tmp, tracking clicked item.
+  var selectedItem = new Object3D() // tmp: tracking last clicked item.
 
   override def onEnterFrame() {
 
@@ -251,10 +246,10 @@ class MainScene(
     if (!hits.isEmpty && (controls.clicked || controls.rightClicked)) {
 
       val ob = hits.head._1
-
       if (ob == selectedItem) {
         val sd = selectedItem.asInstanceOf[js.Dynamic]
         if (!js.isUndefined(sd.userData.url)) {
+          // Fond a URL - so load it.
           load(sd.userData.url.asInstanceOf[String], Some(ob))
         } else {
           // Toggle the children
@@ -292,5 +287,9 @@ class MainScene(
   }
   dom.window.addEventListener("resize", (e:dom.Event) => onResize(), false)
   onResize()
+
+  // Let's dance
+  camera.position.y = 6
+  tweenTo(initObj.position)
 
 }
