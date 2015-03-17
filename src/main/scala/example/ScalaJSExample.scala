@@ -73,7 +73,12 @@ class ScalaJSExample[Rdf <: RDF](implicit
             },
             { case bnode@BNode(label) =>
               val t = triples.filter { case Triple(s, _, _) => s == bnode }
-              val node2 = new Node(bnode, t, pg, nodePos, col, true)
+              val t2 = triples.filter { case Triple(_, _, o) => o == bnode }
+              if (p.toString.contains("address")) {
+                println(t2, t2.size)
+              }
+
+              val node2 = new Node(bnode, triples, pg, nodePos, col, true)
               node2.add(world.scene)
               head.add(node2.head)
 
@@ -133,8 +138,6 @@ class ScalaJSExample[Rdf <: RDF](implicit
       val kbRes = kb.point(URI(uri))
 
       kbRes map { res =>
-
-        println(res, "!")
 
         res match {
 
