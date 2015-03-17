@@ -17,6 +17,8 @@ import org.scalajs.dom.html
 import org.denigma.threejs._
 import LinkedDataVerse.world._
 
+import scala.scalajs.js.annotation._
+
 class ScalaJSExample[Rdf <: RDF](implicit
   ops: RDFOps[Rdf],
   ldclient: LinkedDataClient[Rdf]
@@ -51,7 +53,6 @@ class ScalaJSExample[Rdf <: RDF](implicit
 
       triples.foreach {
 
-        // Testing various types
         case Triple(s, p, o) =>
 
           val nodePos = new Vector3(xo + xo2, yo, -10)
@@ -162,14 +163,25 @@ class ScalaJSExample[Rdf <: RDF](implicit
     }
   }
 
+  def reset(): Unit = {
+    loaded = List()
+    worldPos.z -= 15
+    world.heads = List()
+    val uri = dom.window.prompt("Base URI:", "http://www.w3.org/People/Berners-Lee/card#i")
+    if (uri != null) {
+      load(uri, None)
+    }
+  }
+
   def main(): Unit = {
-    val paragraph = dom.document.createElement("p")
-    paragraph.innerHTML = "<strong>It works!</strong>"
-    dom.document.getElementById("playground").appendChild(paragraph)
+
+    dom.window.addEventListener("keyup", (e:dom.KeyboardEvent) => {
+      if (e.keyCode == 13) {
+        reset()
+      }
+    }, false)
 
     world.render()
-
-    //load("http://www.w3.org/People/Berners-Lee/card#i")
 
   }
 

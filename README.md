@@ -29,3 +29,26 @@ seconds to execute, so typically you only use this for the final, production
 version of your application. While `index-fastopt.html` refers to the
 JavaScript emitted by `fastOptJS`, `index.html` refers to the optimized
 JavaScript emitted by `fullOptJS`.
+
+
+## Vis controls
+
+**Keys**
+
+w/s/a/d:            pan up/down/left/right
+q/e:                pan in/out
+1/2/3/4             move to document head (if loaded)
+enter               start from new URI
+
+**Mouse**
+
+left click:         select item & zoom.
+right click:        select item
+
+Clicking a select item loads the URI, or open/closes a BNode.
+
+left click & drag:  rotate around selected item
+shift & drag:       pan
+right click & drag: pan
+scroll wheel:       zoom
+
